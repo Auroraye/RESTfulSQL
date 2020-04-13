@@ -1,6 +1,7 @@
 
 from flask import Flask, request
 from flask_restplus import Api, Resource, fields
+from Routes import Metadata, Table, TableData
 
 flask_app = Flask(__name__)
 app = Api(app=flask_app,
