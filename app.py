@@ -7,6 +7,10 @@ app = Api(app=flask_app,
           version="1.0",
           title="Name Recorder",
           description="Manage names of various users of the application")
+flask_app.config['MYSQL_HOST'] = 'db4free.net'
+flask_app.config['MYSQL_PORT'] = 3306
+flask_app.config['MYSQL_USER'] = 'mxkezffynken'
+flask_app.config['MYSQL_PASSWORD'] = 'XUWNG3gdFw82'
 
 name_space = app.namespace('names', description='Manage names')
 

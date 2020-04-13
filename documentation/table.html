@@ -32,17 +32,17 @@
                     <tr>
                         <td><a href="#post">POST</a></td>
                         <td>table(string), column(array), unique(array)</td>
-                        <td>success(string)/error(string)</td>
+                        <td>success(string)</td>
                     </tr>
                     <tr>
                         <td><a href="#update">UPDATE</a></td>
                         <td>table(string), column(array), operation(array)</td>
-                        <td>success(string)/error(string)</td>
+                        <td>success(string)</td>
                     </tr>
                     <tr>
                         <td><a href="#delete">DELETE</a></td>
                         <td>table(string)</td>
-                        <td>success(string)/error(string)</td>
+                        <td>success(string)</td>
                     </tr>
                 </tbody>
             </table>
@@ -139,27 +139,58 @@
                             of table must be one and unique in the database, otherwise there would be error triggered. The
                             array of column must have at least one element. The unique parameter could be empty, but it
                             all its value must be included by the column also, otherwise there would be error triggered.</p>
+                        <p>For the array typed parameter, the delimiter of each element is a comma ",". For example, a
+                            valid value for column could be: column=c1,c2,c3,c4. In this case, there will be four columns
+                            created for the table, and they are called "c1", "c2", "c3", and "c4". It is the same for the
+                            unique. Moreover, for composite key, parentheses are taking place to group the elements of a
+                            composite key. For example, a valid value for unique could be: unique=c1,(c2,c4). In this case,
+                            the column "c1" will be created as a single unique key, and the combination of column "c2"
+                            and "c4" will be created as a composite unique key.</p>
+                        <p>As default, there are some values set for the newly created table. The type of each column is
+                            varchar(200) as default, and all column a nullable without default value. To change these setting,
+                            please check <a>here</a>. To set all these setting at creation stage, please check <a>here</a>.</p>
+                        <p>The return value is the success of this creation.</p>
                     </div>
                     <div>
                         <h5>Parameters</h5>
                         <table>
                             <tr>
-                                <td class="parameter"></td>
-                                <td class="parameter-description"></td>
+                                <td class="parameter">table</td>
+                                <td class="parameter-description">the name of the table to be created</td>
+                            </tr>
+                            <tr>
+                                <td class="parameter">column</td>
+                                <td class="parameter-description">the array of the columns of the table to be created</td>
+                            </tr>
+                            <tr>
+                                <td class="parameter">unique</td>
+                                <td class="parameter-description">the array of the keys of the table to be created</td>
                             </tr>
                         </table>
                         <h5>Returns</h5>
                         <table>
                             <tr>
-                                <td class="return"></td>
-                                <td class="return-description"></td>
+                                <td class="return">success(string)</td>
+                                <td class="return-description">telling if the creation successes or fails</td>
                             </tr>
                         </table>
                         <h5>Errors</h5>
                         <table>
                             <tr>
-                                <td class="error"></td>
-                                <td class="error-description"></td>
+                                <td class="error">Invalid Argument</td>
+                                <td class="error-description">when there is no value or multiple values for table</td>
+                            </tr>
+                            <tr>
+                                <td class="error">Duplicate Table</td>
+                                <td class="error-description">when there already is a table with the specified name</td>
+                            </tr>
+                            <tr>
+                                <td class="error">Duplicate Column</td>
+                                <td class="error-description">when there are two or more columns have the same name</td>
+                            </tr>
+                            <tr>
+                                <td class="error">Unknown Key</td>
+                                <td class="error-description">when there is one or more elements in unique that is not in column</td>
                             </tr>
                         </table>
                         <h5>Examples</h5>
@@ -175,7 +206,7 @@
                 <il id="update">
                     <h3>UPDATE</h3>
                     <div class="function-description">
-
+                        <p></p>
                     </div>
                     <div>
                         <h5>Parameters</h5>
