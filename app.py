@@ -11,7 +11,7 @@ app = Api(app=flask_app,
 
 flask_app.config['MYSQL_HOST'] = 'localhost'
 flask_app.config['MYSQL_USER'] = 'root'
-flask_app.config['MYSQL_PASSWORD'] = 'Tyx19980910!'
+flask_app.config['MYSQL_PASSWORD'] = 
 flask_app.config['MYSQL_DB'] = 'company'
 
 
