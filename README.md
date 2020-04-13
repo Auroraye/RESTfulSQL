@@ -20,3 +20,9 @@ In the debug mode:
 ```
 $ FLASK_APP=app.py FLASK_ENV=development flask run
 ```
+## Database Connection
+Hostname: db4free.net
+
+Port: 3306
+
+Username: mxkezffynken
