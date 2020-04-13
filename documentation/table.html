@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Table</title>
+    <link rel="stylesheet" type="text/css" href="document-style.css">
+</head>
+<body>
+    <main>
+        <div class="block-one">
+            <h1>Table</h1>
+            <div class="class-description">
+                <p>This model is designed for direct modification on tables.</p>
+                <p>The GET method in this model is to query the structural information of a specified table. The POST
+                    method in this model is to create a plain new table with specified columns. The UPDATE method in
+                    this model is to delete or inter a new column into a specified table. The DELETE method in this
+                    model is to delete a whole table from the database.</p>
+                <p>If you are looking for functions to modify the data in a table, please go to <a>here</a>.</p>
+            </div>
+        </div>
+        <hr/>
+        <div class="block-two">
+            <h3>All Methods</h3>
+            <table class="list-table">
+                <thead><td>Method</td><td>Parameters</td><td>Returns</td></thead>
+                <tbody class="list-tbody">
+                    <tr>
+                        <td><a href="#get">GET</a></td>
+                        <td>table(string) </td>
+                        <td>field(string), type(string), null(boolean), key(string), default(string), extra(string)</td>
+                    </tr>
+                    <tr>
+                        <td><a href="#post">POST</a></td>
+                        <td>table(string), column(array), unique(array)</td>
+                        <td>success(string)/error(string)</td>
+                    </tr>
+                    <tr>
+                        <td><a href="#update">UPDATE</a></td>
+                        <td>table(string), column(array), operation(array)</td>
+                        <td>success(string)/error(string)</td>
+                    </tr>
+                    <tr>
+                        <td><a href="#delete">DELETE</a></td>
+                        <td>table(string)</td>
+                        <td>success(string)/error(string)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <hr/>
+        <div class="block-tree">
+            <ul>
+                <il id="get">
+                    <h3>GET</h3>
+                    <div class="function-description">
+                        <p>This GET takes a table name and returns an array of information about each column in that
+                            table. The most important value in the returns are the column name and the type of the column.
+                            Additionally, there are some other information, such as if the column allows null value, the
+                            default value of that column if any, if the column is a key of this table, and an extra
+                            information which is rarely used. The return values are in form of an array, and each element
+                            in the array contains the information listed above, and the length of the array is determined
+                            by how many columns is in the table.</p>
+                        <p>Usually, this method is used after <a>info.GET</a> had been called, in which the info.GET
+                            returns what tables are in the database. As all existing tables are listed by the info.GET,
+                            it can prohibit the "Table Not Found" error by querying a table with a wrong name.</p>
+                        <p>Once the information about the table is gotten, these information can be used for further
+                            modification on the table or the data in the data. For modify the table, please check <a>here</a>;
+                            for modify columns, please check <a>here</a>; for modify rows or data, please check <a>here</a>.</p>
+                    </div>
+                    <div>
+                        <h5>Parameters</h5>
+                        <table>
+                            <tr>
+                                <td class="parameter">table(string)</td>
+                                <td class="parameter-description">the name of table to be queried.</td>
+                            </tr>
+                        </table>
+                        <h5>Returns</h5>
+                        <table>
+                            <tr>
+                                <td class="return">field(string)</td>
+                                <td class="return-description">the name of a column</td>
+                            </tr>
+                            <tr>
+                                <td class="return">type(string)</td>
+                                <td class="return-description">the data type of the column</td>
+                            </tr>
+                            <tr>
+                                <td class="return">null(boolean)</td>
+                                <td class="return-description">if the column allows null value; true for allowing null
+                                    value, and false for not allowing null value</td>
+                            </tr>
+                            <tr>
+                                <td class="return">key(string)</td>
+                                <td class="return-description">if the column is a key of the table, if so, it contains the
+                                    type of the key; if not, it is empty</td>
+                            </tr>
+                            <tr>
+                                <td class="return">default(string)</td>
+                                <td class="return-description">the default value of the column, and the default value of
+                                    this return is "Null"</td>
+                            </tr>
+                            <tr>
+                                <td class="return">extra(string)</td>
+                                <td class="return-description">any extra information about the column</td>
+                            </tr>
+                        </table>
+                        <h5>Errors</h5>
+                        <table>
+                            <tr>
+                                <td class="error">Invalid Argument</td>
+                                <td class="error-description">when there is no value or multiple values for the table parameter</td>
+                            </tr>
+                            <tr>
+                                <td class="error">Table Not Found</td>
+                                <td class="error-description">when there is no such table with the specified table name</td>
+                            </tr>
+                            <tr>
+                                <td class="error"></td>
+                                <td class="error-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Examples</h5>
+                        <table>
+                            <tr>
+                                <td class="sql">describe table_name</td>
+                                <td class="parameter-value">table=table_name</td>
+                            </tr>
+                        </table>
+                    </div>
+                </il>
+                <hr/>
+                <il id="post">
+                    <h3>POST</h3>
+                    <div class="function-description">
+                        <p>This POST method takes the basic information to create a new table.</p>
+                        <p>The parameters of this method are: table, the name for the new table; column, an array of
+                            the names of columns for the new table; unique, an array of keys for the new table. The value
+                            of table must be one and unique in the database, otherwise there would be error triggered. The
+                            array of column must have at least one element. The unique parameter could be empty, but it
+                            all its value must be included by the column also, otherwise there would be error triggered.</p>
+                    </div>
+                    <div>
+                        <h5>Parameters</h5>
+                        <table>
+                            <tr>
+                                <td class="parameter"></td>
+                                <td class="parameter-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Returns</h5>
+                        <table>
+                            <tr>
+                                <td class="return"></td>
+                                <td class="return-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Errors</h5>
+                        <table>
+                            <tr>
+                                <td class="error"></td>
+                                <td class="error-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Examples</h5>
+                        <table>
+                            <tr>
+                                <td class="sql"></td>
+                                <td class="parameter-value"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </il>
+                <hr/>
+                <il id="update">
+                    <h3>UPDATE</h3>
+                    <div class="function-description">
+
+                    </div>
+                    <div>
+                        <h5>Parameters</h5>
+                        <table>
+                            <tr>
+                                <td class="parameter"></td>
+                                <td class="parameter-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Returns</h5>
+                        <table>
+                            <tr>
+                                <td class="return"></td>
+                                <td class="return-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Errors</h5>
+                        <table>
+                            <tr>
+                                <td class="error"></td>
+                                <td class="error-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Examples</h5>
+                        <table>
+                            <tr>
+                                <td class="sql"></td>
+                                <td class="parameter-value"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </il>
+                <hr/>
+                <il id="delete">
+                    <h3>DELETE</h3>
+                    <div class="function-description">
+
+                    </div>
+                    <div>
+                        <h5>Parameters</h5>
+                        <table>
+                            <tr>
+                                <td class="parameter"></td>
+                                <td class="parameter-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Returns</h5>
+                        <table>
+                            <tr>
+                                <td class="return"></td>
+                                <td class="return-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Errors</h5>
+                        <table>
+                            <tr>
+                                <td class="error"></td>
+                                <td class="error-description"></td>
+                            </tr>
+                        </table>
+                        <h5>Examples</h5>
+                        <table>
+                            <tr>
+                                <td class="sql"></td>
+                                <td class="parameter-value"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </il>
+            </ul>
+        </div>
+    </main>
+
+
+</body>
+</html>

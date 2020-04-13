@@ -1,0 +1,19 @@
+.list-table {
+    margin-left: 5%;
+    border: 1px solid black;
+    padding: 5px;
+}
+.list-tbody td{
+    border-top: 1px dashed gray;
+    padding-top: 2px;
+}
+.block-tree h5,table {
+    margin-left: 5%;
+}
+td {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+main {
+    padding: 10px;
+}
