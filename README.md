@@ -15,3 +15,8 @@ $ pip install Werkzeug==0.16.1
 $ FLASK_APP=app.py flask run
 ```
 The url for the namespace is http://127.0.0.1:5000/main
+
+In the debug mode: 
+```
+$ FLASK_APP=app.py FLASK_ENV=development flask run
+```
