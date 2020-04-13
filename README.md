@@ -26,3 +26,5 @@ Hostname: db4free.net
 Port: 3306
 
 Username: mxkezffynken
+
+Password: XUWNG3gdFw82
