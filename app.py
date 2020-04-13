@@ -1,22 +1,29 @@
-
+from flask_mysqldb import MySQL
 from flask import Flask, request
 from flask_restplus import Api, Resource, fields
-from Routes import Metadata, Table, TableData
+
 
 flask_app = Flask(__name__)
 app = Api(app=flask_app,
           version="1.0",
           title="Name Recorder",
           description="Manage names of various users of the application")
-flask_app.config['MYSQL_HOST'] = 'db4free.net'
-flask_app.config['MYSQL_PORT'] = 3306
-flask_app.config['MYSQL_USER'] = 'mxkezffynken'
-flask_app.config['MYSQL_PASSWORD'] = 'XUWNG3gdFw82'
+
+flask_app.config['MYSQL_HOST'] = 'localhost'
+flask_app.config['MYSQL_USER'] = 'root'
+flask_app.config['MYSQL_PASSWORD'] = 'Tyx19980910!'
+flask_app.config['MYSQL_DB'] = 'company'
+
+
+# flask_app.config['MYSQL_HOST'] = 'db4free.net'
+# flask_app.config['MYSQL_PORT'] = 3306
+# flask_app.config['MYSQL_USER'] = 'mxkezffynken'
+# flask_app.config['MYSQL_PASSWORD'] = 'XUWNG3gdFw82'
+
+# Intialize MySQL
+mysql = MySQL(flask_app)
 
 name_space = app.namespace('names', description='Manage names')
-table_space = app.namespace('Table', description='Manage tables')
-metadata_space = app.namespace('Metadata', description='Manage metadata')
-tabledata_space = app.namespace('Table/Data', description='Manage data records')
 
 model = app.model('Name Model',
                   {'name': fields.String(required=True,
@@ -61,3 +68,32 @@ class MainClass(Resource):
         except Exception as e:
             name_space.abort(
                 400, e.__doc__, status="Could not save information", statusCode="400")
+
+
+@app.route('/test')
+class Test(Resource):
+    def get(self):
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM company.department;")
+        result = cur.fetchall()
+        print(result)
+        return {
+                "status": "Person retrieved",
+                "name": "lalalall"
+        }
+
+a_language = app.model('Language', {'language' : fields.String('The language.')})
+languages = []
+item1 = {'language' : 'Python'}
+languages.append(item1)
+
+languages_space = app.namespace('Language', description='test for languages')
+@languages_space.route('/language')
+class Language(Resource):
+    def get(self):
+        return languages
+
+    @app.expect(a_language)
+    def post(self):
+        languages.append(app.payload)
+        return {'result' : 'Language added'}, 201
