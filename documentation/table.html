@@ -155,15 +155,15 @@
                         <h5>Parameters</h5>
                         <table>
                             <tr>
-                                <td class="parameter">table</td>
+                                <td class="parameter">table(string)</td>
                                 <td class="parameter-description">the name of the table to be created</td>
                             </tr>
                             <tr>
-                                <td class="parameter">column</td>
+                                <td class="parameter">column(array)</td>
                                 <td class="parameter-description">the array of the columns of the table to be created</td>
                             </tr>
                             <tr>
-                                <td class="parameter">unique</td>
+                                <td class="parameter">unique(array)</td>
                                 <td class="parameter-description">the array of the keys of the table to be created</td>
                             </tr>
                         </table>
@@ -206,28 +206,101 @@
                 <il id="update">
                     <h3>UPDATE</h3>
                     <div class="function-description">
-                        <p></p>
+                        <p>This UPDATE method is designed for drop or insert new columns to the specified table. There are
+                            three parameters for this method: table, the name of the table to be modified; column, an array
+                            of columns to be added or dropped from the table; operation, an array of "0" or "1" to specify
+                            what operation to apply to the corresponding column in the column parameter. Therefore, this
+                            method requires an one-to-one relation between the column parameter and the operation parameter,
+                            and the corresponding value in the operation parameter would determine what to do with the
+                            corresponding column. And, for the value of operation parameter, "0" is for dropping the column,
+                            and "1" is for inserting the column. Therefore, the following would be a valid example:</p>
+                        <p>column=c1,c2,c5,c6&operation=0,0,1,1</p>
+                        <p>In this case, the method will drop two columns, "c1" and "c2", and the method will also insert
+                            two columns, "c5" and "c6". One more thing about the insertion is that, all inserted column
+                            would be inserted at the end of the table, and there is currently no support to specify the
+                            position to insert the column.</p>
+                        <p>For the mechanism, there are some special cases, and it is necessary to clarify the behavior
+                            of this method. There are two big cases: a column name only appears once in the column parameter,
+                            and a column name appears more than once in the column parameter.</p>
+                        <p>For the first case, there are four small cases.
+                            <ol>
+                                <li>If the column is marked as insert, and there is no column having this name in the
+                                    table, then the column is inserted.</li>
+                                <li>If the column is marked as insert, and there is a column having this name in the
+                                    table, then error is raised.</li>
+                                <li>If the column is marked as drop, and there is no column having this name in the table,
+                                    then error is raised.</li>
+                                <li>If the column is marked as drop, and there is a column having this name in the table,
+                                    then the column is dropped.</li>
+                            </ol>
+                        </p>
+                        <p>For the second case, there are five cases.
+                            <ol>
+                                <li>If the first appearance of the column is marked as insert, and the second is marked
+                                    as drop, and there is no column having this name in the table, then no change will
+                                    be apply to the table.</li>
+                                <li>If the first appearance of the column is marked as insert, and the second is marked
+                                    as drop, and there is a column having this name in the table, then error is raised.</li>
+                                <li>If the first appearance of the column is marked as drop,  and the second is marked
+                                    as insert, and there is no column having this name in the table, then error is raised.</li>
+                                <li>If the first appearance of the column is marked as drop, and the second is marked as
+                                    insert, and there is a column having this name in the table, then the column is dropped,
+                                    and a new column with the same name is inserted.</li>
+                                <li>If the situation is not listed above, then error is raised.</li>
+                            </ol>
+                        </p>
+                        <p>For updating the property of a column, please see <a>here</a>. For updating the data record,
+                            please see <a>here</a>.</p>
                     </div>
                     <div>
                         <h5>Parameters</h5>
                         <table>
                             <tr>
-                                <td class="parameter"></td>
-                                <td class="parameter-description"></td>
+                                <td class="parameter">table(string)</td>
+                                <td class="parameter-description">the name of the table to be modified</td>
+                            </tr>
+                            <tr>
+                                <td class="parameter">column(array)</td>
+                                <td class="parameter-description">the array of all the columns to be inserted or dropped</td>
+                            </tr>
+                            <tr>
+                                <td class="parameter">operation(array)</td>
+                                <td class="parameter-description">the array of all the operations for the columns</td>
                             </tr>
                         </table>
                         <h5>Returns</h5>
                         <table>
                             <tr>
-                                <td class="return"></td>
-                                <td class="return-description"></td>
+                                <td class="return">success(string)</td>
+                                <td class="return-description">telling if the update successes or fails</td>
                             </tr>
                         </table>
                         <h5>Errors</h5>
                         <table>
                             <tr>
-                                <td class="error"></td>
-                                <td class="error-description"></td>
+                                <td class="error">Invalid Argument</td>
+                                <td class="error-description">when there is no value or multiple values for the table parameter</td>
+                            </tr>
+                            <tr>
+                                <td class="error">Table Not Found</td>
+                                <td class="error-description">when there is no such table with the specified table name</td>
+                            </tr>
+                            <tr>
+                                <td class="error">Unmatched Column And Operation</td>
+                                <td class="error-description">when the length of columns is different from the length of operations</td>
+                            </tr>
+                            <tr>
+                                <td class="error">Inserting Duplicate Column</td>
+                                <td class="error-description">when operating insertion of a column and there is a column
+                                    having the same name in the table</td>
+                            </tr>
+                            <tr>
+                                <td class="error">Dropping Unknown Column</td>
+                                <td class="error-description">when operation dropping of a column and there is no column
+                                    having the same name in the table</td>
+                            </tr><tr>
+                                <td class="error">Too Many Appearance of Name</td>
+                                <td class="error-description">when encounter the case 2.5 stated in the description section</td>
                             </tr>
                         </table>
                         <h5>Examples</h5>
@@ -243,28 +316,34 @@
                 <il id="delete">
                     <h3>DELETE</h3>
                     <div class="function-description">
-
+                        This DELETE method simply takes the name of a table, and deletes that table from the database.
                     </div>
                     <div>
                         <h5>Parameters</h5>
                         <table>
                             <tr>
-                                <td class="parameter"></td>
-                                <td class="parameter-description"></td>
+                                <td class="parameter">table(string)</td>
+                                <td class="parameter-description">the name of the table to be deleted</td>
                             </tr>
                         </table>
                         <h5>Returns</h5>
                         <table>
                             <tr>
-                                <td class="return"></td>
-                                <td class="return-description"></td>
+                                <td class="return">success(string)</td>
+                                <td class="return-description">telling if the deletion successes or fails</td>
                             </tr>
                         </table>
                         <h5>Errors</h5>
                         <table>
                             <tr>
-                                <td class="error"></td>
-                                <td class="error-description"></td>
+                                <tr>
+                                <td class="error">Invalid Argument</td>
+                                <td class="error-description">when there is no value or multiple values for the table parameter</td>
+                            </tr>
+                            <tr>
+                                <td class="error">Table Not Found</td>
+                                <td class="error-description">when there is no such table with the specified table name</td>
+                            </tr>
                             </tr>
                         </table>
                         <h5>Examples</h5>
