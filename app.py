@@ -1,7 +1,7 @@
 from Controller.PredictableExeption import PredictableException
 from Controller.TableController import create_table
 from flask import Flask, request
-from flask.ext.mysql import MySQL
+from flask_mysqldb import MySQL
 from flask_restplus import Api, Resource, fields
 from Unitility.MySQLInfo import password, host, port, user, database
 
@@ -17,7 +17,7 @@ flask_app.config['MYSQL_USER'] = user
 flask_app.config['MYSQL_PASSWORD'] = password
 flask_app.config['MYSQL_DB'] = database
 mysql = MySQL()
-mysql.init_app(app)
+mysql.init_app(flask_app)
 
 name_space = app.namespace('names', description='Manage names')
 table_space = app.namespace('Table', description='Manage tables')
