@@ -1,6 +1,7 @@
 from flask_mysqldb import MySQL
-from flask import Flask, request
-from flask_restplus import Api, Resource, fields
+from flask import Flask, request, jsonify
+from flask_restplus import Api, Resource, fields, reqparse
+import json
 
 
 flask_app = Flask(__name__)
@@ -11,7 +12,7 @@ app = Api(app=flask_app,
 
 flask_app.config['MYSQL_HOST'] = 'localhost'
 flask_app.config['MYSQL_USER'] = 'root'
-flask_app.config['MYSQL_PASSWORD'] = 
+
 flask_app.config['MYSQL_DB'] = 'company'
 
 
@@ -24,6 +25,7 @@ flask_app.config['MYSQL_DB'] = 'company'
 mysql = MySQL(flask_app)
 
 name_space = app.namespace('names', description='Manage names')
+metadata_space = app.namespace('Metadata', description='Manage metadata')
 
 model = app.model('Name Model',
                   {'name': fields.String(required=True,
@@ -31,6 +33,31 @@ model = app.model('Name Model',
                                          help="Name cannot be blank.")})
 
 list_of_names = {}
+
+
+def db_query(query, args):
+    """
+    A handler method for calling database procedures.
+
+    :param query: the name of the query to be executed
+    :type query: str
+    :param args: arguments to pass in to the procedure
+    :type args: tuple
+    :return: a 2D tuple for result (becomes () if there is error), an error message (None if no error)
+    :rtype: (tuple, str)
+    """
+
+    cur = mysql.connection.cursor()
+    result, error = (), None
+    try:
+        cur.execute(query, args)
+        result = cur.fetchall()
+    except:
+        error = mysql.connection.error()
+    finally:
+        cur.close()
+        mysql.connection.commit()
+    return result, error
 
 
 @name_space.route("/<int:id>")
@@ -97,3 +124,38 @@ class Language(Resource):
     def post(self):
         languages.append(app.payload)
         return {'result' : 'Language added'}, 201
+
+
+@metadata_space.route("/<table_name>")
+class MainClass(Resource):
+
+    def get(self, table_name):
+        resultlist = []
+        if table_name == 'TABLE':
+            result, error = db_query('SHOW FULL TABLES IN company;', None)
+            for item in result:
+                temp = {"Tables": item[0],
+                        "Table_type": item[1]
+                        }
+                resultlist.append(temp)
+        elif table_name == 'VIEW':
+            result, error = db_query('SHOW FULL TABLES IN company WHERE TABLE_TYPE LIKE \'VIEW\';', None)
+            for item in result:
+                temp = {"Views": item[0],
+                        "Table_type": item[1]
+                        }
+                resultlist.append(temp)
+        else:
+            result, error = db_query('DESCRIBE {};'.format(table_name), None)
+            for item in result:
+                # temp = jsonify(Field=item[0], Type=item[1], Null=item[2], Key=item[3])
+                temp = {"Field": item[0],
+                        "Type": item[1],
+                        "Null": item[2],
+                        "Key": item[3]
+                        }
+                resultlist.append(temp)
+        resultTuple = tuple(resultlist)
+        return jsonify(resultTuple)
+        # return jsonify([user for user in result])
+
