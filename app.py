@@ -1,8 +1,9 @@
 from Controller.PredictableExeption import PredictableException
 from Controller.TableController import create_table
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
 from flask_restplus import Api, Resource, fields
+from Unitility.MySQLInfo import db_query
 from Unitility.MySQLInfo import password, host, port, user, database
 
 flask_app = Flask(__name__)
@@ -11,13 +12,18 @@ app = Api(app=flask_app,
           title="Name Recorder",
           description="Manage names of various users of the application")
 ex_app = app
-flask_app.config['MYSQL_HOST'] = host
-flask_app.config['MYSQL_PORT'] = port
-flask_app.config['MYSQL_USER'] = user
-flask_app.config['MYSQL_PASSWORD'] = password
-flask_app.config['MYSQL_DB'] = database
-mysql = MySQL()
-mysql.init_app(flask_app)
+# flask_app.config['MYSQL_HOST'] = host
+# flask_app.config['MYSQL_PORT'] = port
+# flask_app.config['MYSQL_USER'] = user
+# flask_app.config['MYSQL_PASSWORD'] = password
+# flask_app.config['MYSQL_DB'] = database
+
+flask_app.config['MYSQL_HOST'] = 'localhost'
+flask_app.config['MYSQL_USER'] = 'root'
+
+flask_app.config['MYSQL_DB'] = 'company'
+
+mysql = MySQL(flask_app)
 
 name_space = app.namespace('names', description='Manage names')
 table_space = app.namespace('Table', description='Manage tables')
@@ -96,3 +102,37 @@ class TableClass(Resource):
         except Exception as e:
             table_space.abort(
                 400, e.__doc__, status="Could not save information", statusCode="400")
+
+
+@metadata_space.route("/<table_name>")
+class MainClass(Resource):
+
+    def get(self, table_name):
+        resultlist = []
+        if table_name == 'TABLE':
+            result, error = db_query(mysql, 'SHOW FULL TABLES IN company;', None)
+            for item in result:
+                temp = {"Tables": item[0],
+                        "Table_type": item[1]
+                        }
+                resultlist.append(temp)
+        elif table_name == 'VIEW':
+            result, error = db_query(mysql, 'SHOW FULL TABLES IN company WHERE TABLE_TYPE LIKE \'VIEW\';', None)
+            for item in result:
+                temp = {"Views": item[0],
+                        "Table_type": item[1]
+                        }
+                resultlist.append(temp)
+        else:
+            result, error = db_query(mysql, 'DESCRIBE {};'.format(table_name), None)
+            for item in result:
+                # temp = jsonify(Field=item[0], Type=item[1], Null=item[2], Key=item[3])
+                temp = {"Field": item[0],
+                        "Type": item[1],
+                        "Null": item[2],
+                        "Key": item[3]
+                        }
+                resultlist.append(temp)
+        resultTuple = tuple(resultlist)
+        return jsonify(resultTuple)
+        # return jsonify([user for user in result])

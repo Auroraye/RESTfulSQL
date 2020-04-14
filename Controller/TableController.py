@@ -1,6 +1,4 @@
-from Controller.PredictableExeption import PredictableUnknownKeyException, PredictableInvalidArgumentException, \
-    PredictableDuplicateColumnException
-
+from Controller.PredictableExeption import *
 
 # This function create a table with unique key(s)
 def create_table(table, column, unique, mysql):
