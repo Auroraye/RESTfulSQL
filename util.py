@@ -1,4 +1,4 @@
-from app import mysql
+# from app import mysql
 
 
 def db_query(query, args):
