@@ -86,7 +86,7 @@ class TableClass(Resource):
             table = request.json['name']
             column = request.json['columns']
             unique = request.json['uniques']
-            create_table(table, column, unique, mysql)
+            return create_table(table, column, unique, mysql)
         except KeyError as e:
             table_space.abort(
                 500, e.__doc__, status="Could not save information", statusCode="500")
