@@ -1,4 +1,5 @@
-from Controller.PredictableExeption import PredictableUnknownKeyException, PredictableInvalidArgumentException
+from Controller.PredictableExeption import PredictableUnknownKeyException, PredictableInvalidArgumentException, \
+    PredictableDuplicateColumnException
 
 
 # This function create a table with unique key(s)
@@ -19,7 +20,7 @@ def create_table_with_unique(table, column, unique):
     # Now, check the duplication in columns.
     for elem in columns:
         if columns.count(elem) > 1:
-            raise
+            raise PredictableDuplicateColumnException(elem)
 
     # Parse the list of unique keys from string into array.
     # Because a unique key can be composite key with a form of '(c1,c2)',
@@ -84,6 +85,20 @@ def create_table_with_unique(table, column, unique):
                 raise PredictableUnknownKeyException(col_in_key[i])
             j += 1
         i += 1
+
+    # Now, we have passed all the preconditions for the table creation.
+    # The next step is to communicate with the database.
+
+    # The first thing to do is to turn of the autocommit variable,
+    # and start a new transaction.
+    command = ""
+
+    # Now, we can start to communicate with the database.
+    command = "CREATE TABLE " + table + " ( \n"
+    command = command + "auto_generated_id int not null primary key auto_increment"
+    for elem in columns:
+        command = command + ",\n" + elem + " varchar(200)"
+
 
 
 
