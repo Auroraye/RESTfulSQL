@@ -49,5 +49,18 @@ def create_table_with_unique(table, column, unique):
                     unique = ""
                 else:
                     unique = unique[comma+1:-1]
+    # Once all the unique keys are parsed, we need to check if all the key are defined in columns.
+    i = 0
+    while i < len(uniques):
+        key = unique[i]
+        # Remember, for composite key, there are multiple columns in it.
+        col_in_key = key.split(",")
+        j = 0
+        while j < len(col_in_key):
+            if not col_in_key[i] in columns:
+                raise Exception()
+            j += 1
+        i += 1
+
 
 
