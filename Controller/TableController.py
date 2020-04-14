@@ -3,19 +3,16 @@ from Controller.PredictableExeption import PredictableUnknownKeyException, Predi
 
 
 # This function create a table with unique key(s)
-from app import mysql
-
-
-def create_table_with_unique(table, column, unique):
+def create_table_with_unique(table, column, unique, mysql):
     # Create error variable, after each mysql query, check if it is null.
     # If not null, then return error
     error = None
 
     # Try to parse the table variable in order to detect exception.
     tables = table.split(",")
-    if len(table) == 0:
+    if len(tables) == 0:
         raise PredictableInvalidArgumentException("1")
-    elif len(table) > 1:
+    elif len(tables) > 1:
         raise PredictableInvalidArgumentException("2")
 
     # Parse the list of columns from string into array.
@@ -59,14 +56,14 @@ def create_table_with_unique(table, column, unique):
             except Exception as e:
                 raise e
             prent += 1
-            composite_key = unique[prent: end-1]
+            composite_key = unique[prent: end]
             uniques.append(composite_key)
-            unique = uniques[end+1:-1]
+            unique = uniques[end+1:]
         # When the next key is a single key...
         else:
             if comma == 0:
                 # If there is an empty key, then skip it.
-                unique = unique[1:-1]
+                unique = unique[1:]
             else:
                 # Cut the single key off from the tring and push it into the array.
                 single_key = unique[0:comma]
@@ -75,17 +72,17 @@ def create_table_with_unique(table, column, unique):
                     # If this is the last key, then empty the string.
                     unique = ""
                 else:
-                    unique = unique[comma+1:-1]
+                    unique = unique[comma+1:]
     # Once all the unique keys are parsed, we need to check if all the key are defined in columns.
     i = 0
     while i < len(uniques):
-        key = unique[i]
+        key = uniques[i]
         # Remember, for composite key, there are multiple columns in it.
         col_in_key = key.split(",")
         j = 0
         while j < len(col_in_key):
-            if not col_in_key[i] in columns:
-                raise PredictableUnknownKeyException(col_in_key[i])
+            if not col_in_key[j] in columns:
+                raise PredictableUnknownKeyException(col_in_key[j])
             j += 1
         i += 1
 
@@ -99,14 +96,14 @@ def create_table_with_unique(table, column, unique):
     con.autocommit = False
 
     # Now, we can start to communicate with the database.
-    command = "CREATE TABLE " + table + " ( \n"
+    command = "CREATE TABLE `" + table + "` ( "
     command = command + "auto_generated_id int not null primary key auto_increment"
     for elem in columns:
-        command = command + ",\n" + elem + " varchar(200)"
+        command = command + " , `" + elem + "` varchar(200)"
     command = command + ");"
     try:
         cur.execute(command)
-    except mysql.connector.Error as e:
+    except Exception as e:
         con.rollback()
         cur.close()
         raise e
@@ -116,11 +113,11 @@ def create_table_with_unique(table, column, unique):
     i = 0
     for elem in uniques:
         i += 1
-        command = "alter table " + table + " add constraint uniquekey_"
+        command = "alter table `" + table + "` add constraint uniquekey_"
         command += str(i) + " unique (" + elem + ");"
         try:
             cur.execute(command)
-        except mysql.connector.Error as e:
+        except Exception as e:
             con.rollback()
             cur.close()
             raise e

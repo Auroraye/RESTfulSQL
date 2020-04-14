@@ -1,8 +1,8 @@
-
+from Controller.PredictableExeption import PredictableException
+from Controller.TableController import create_table_with_unique
 from flask import Flask, request
 from flask.ext.mysql import MySQL
 from flask_restplus import Api, Resource, fields
-from Routes import Metadata, Table, TableData
 from Unitility.MySQLInfo import password, host, port, user, database
 
 flask_app = Flask(__name__)
@@ -10,6 +10,7 @@ app = Api(app=flask_app,
           version="1.0",
           title="Name Recorder",
           description="Manage names of various users of the application")
+ex_app = app
 flask_app.config['MYSQL_HOST'] = host
 flask_app.config['MYSQL_PORT'] = port
 flask_app.config['MYSQL_USER'] = user
@@ -65,4 +66,33 @@ class MainClass(Resource):
                 500, e.__doc__, status="Could not save information", statusCode="500")
         except Exception as e:
             name_space.abort(
+                400, e.__doc__, status="Could not save information", statusCode="400")
+
+
+table_model = app.model('Table Model',
+                        {'name': fields.String(required=True,
+                                                description="Name of the person",
+                                                help="Name cannot be blank."),
+                         'columns': fields.String(required=True),
+                         'uniques': fields.String()})
+
+
+@table_space.route("/")
+class TableClass(Resource):
+    @app.doc(responses={200: 'OK', 400: 'Invalid Argument', 500: 'Mapping Key Error'})
+    @app.expect(table_model)
+    def post(self):
+        try:
+            table = request.json['name']
+            column = request.json['columns']
+            unique = request.json['uniques']
+            create_table_with_unique(table, column, unique, mysql)
+        except KeyError as e:
+            table_space.abort(
+                500, e.__doc__, status="Could not save information", statusCode="500")
+        except PredictableException as e:
+            table_space.abort(
+                500, e.__doc__, status=e.handle_me(), statusCode="300")
+        except Exception as e:
+            table_space.abort(
                 400, e.__doc__, status="Could not save information", statusCode="400")
