@@ -1,17 +1,22 @@
 
 from flask import Flask, request
+from flask.ext.mysql import MySQL
 from flask_restplus import Api, Resource, fields
 from Routes import Metadata, Table, TableData
+from Unitility.MySQLInfo import password, host, port, user, database
 
 flask_app = Flask(__name__)
 app = Api(app=flask_app,
           version="1.0",
           title="Name Recorder",
           description="Manage names of various users of the application")
-flask_app.config['MYSQL_HOST'] = 'db4free.net'
-flask_app.config['MYSQL_PORT'] = 3306
-flask_app.config['MYSQL_USER'] = 'mxkezffynken'
-flask_app.config['MYSQL_PASSWORD'] = 'XUWNG3gdFw82'
+flask_app.config['MYSQL_HOST'] = host
+flask_app.config['MYSQL_PORT'] = port
+flask_app.config['MYSQL_USER'] = user
+flask_app.config['MYSQL_PASSWORD'] = password
+flask_app.config['MYSQL_DB'] = database
+mysql = MySQL()
+mysql.init_app(app)
 
 name_space = app.namespace('names', description='Manage names')
 table_space = app.namespace('Table', description='Manage tables')
