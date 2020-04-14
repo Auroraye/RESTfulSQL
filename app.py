@@ -1,6 +1,7 @@
 
 from flask import Flask, request
 from flask_restplus import Api, Resource, fields
+from Routes import Metadata, Table, TableData
 
 flask_app = Flask(__name__)
 app = Api(app=flask_app,
@@ -13,6 +14,9 @@ flask_app.config['MYSQL_USER'] = 'mxkezffynken'
 flask_app.config['MYSQL_PASSWORD'] = 'XUWNG3gdFw82'
 
 name_space = app.namespace('names', description='Manage names')
+table_space = app.namespace('Table', description='Manage tables')
+metadata_space = app.namespace('Metadata', description='Manage metadata')
+tabledata_space = app.namespace('Table/Data', description='Manage data records')
 
 model = app.model('Name Model',
                   {'name': fields.String(required=True,
