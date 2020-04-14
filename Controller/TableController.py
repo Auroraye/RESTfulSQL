@@ -3,6 +3,9 @@ from Controller.PredictableExeption import PredictableUnknownKeyException, Predi
 
 
 # This function create a table with unique key(s)
+from app import mysql
+
+
 def create_table_with_unique(table, column, unique):
     # Create error variable, after each mysql query, check if it is null.
     # If not null, then return error
@@ -91,13 +94,40 @@ def create_table_with_unique(table, column, unique):
 
     # The first thing to do is to turn of the autocommit variable,
     # and start a new transaction.
-    command = ""
+    con = mysql.connection
+    cur = con.cursor()
+    con.autocommit = False
 
     # Now, we can start to communicate with the database.
     command = "CREATE TABLE " + table + " ( \n"
     command = command + "auto_generated_id int not null primary key auto_increment"
     for elem in columns:
         command = command + ",\n" + elem + " varchar(200)"
+    command = command + ");"
+    try:
+        cur.execute(command)
+    except mysql.connector.Error as e:
+        con.rollback()
+        cur.close()
+        raise e
+
+    # Now, the table has been created, but the unique keys are not added yet.
+    # So, there we are going to add the unique keys
+    i = 0
+    for elem in uniques:
+        i += 1
+        command = "alter table " + table + " add constraint uniquekey_"
+        command += str(i) + " unique (" + elem + ");"
+        try:
+            cur.execute(command)
+        except mysql.connector.Error as e:
+            con.rollback()
+            cur.close()
+            raise e
+
+    con.commit()
+    return {"success": "Table " + table + " is created."}
+
 
 
 
