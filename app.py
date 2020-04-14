@@ -1,5 +1,5 @@
 from Controller.PredictableExeption import PredictableException
-from Controller.TableController import create_table_with_unique
+from Controller.TableController import create_table
 from flask import Flask, request
 from flask.ext.mysql import MySQL
 from flask_restplus import Api, Resource, fields
@@ -86,7 +86,7 @@ class TableClass(Resource):
             table = request.json['name']
             column = request.json['columns']
             unique = request.json['uniques']
-            create_table_with_unique(table, column, unique, mysql)
+            create_table(table, column, unique, mysql)
         except KeyError as e:
             table_space.abort(
                 500, e.__doc__, status="Could not save information", statusCode="500")
