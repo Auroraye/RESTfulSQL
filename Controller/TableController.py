@@ -1,3 +1,6 @@
+from Controller.PredictableExeption import PredictableUnknownKeyException
+
+
 # This function create a table with unique key(s)
 def create_table_with_unique(table, column, unique):
     # Create error variable, after each mysql query, check if it is null.
@@ -21,16 +24,25 @@ def create_table_with_unique(table, column, unique):
         prent = -1
         try:
             comma = unique.index(',')
-        except Exception as e:
+        except ValueError as v:
             comma = -1
+        except Exception as e:
+            raise e
         try:
             prent = unique.index('(')
-        except Exception as e:
+        except ValueError as v:
             prent = -1
+        except Exception as e:
+            raise e
 
         # When the next key is a composite key...
         if comma > prent >= 0:
-            end = unique.index(')')
+            try:
+                end = unique.index(')')
+            except ValueError as v:
+                raise
+            except Exception as e:
+                raise e
             prent += 1
             composite_key = unique[prent: end-1]
             uniques.append(composite_key)
@@ -58,7 +70,7 @@ def create_table_with_unique(table, column, unique):
         j = 0
         while j < len(col_in_key):
             if not col_in_key[i] in columns:
-                raise Exception()
+                raise PredictableUnknownKeyException(col_in_key[i])
             j += 1
         i += 1
 
