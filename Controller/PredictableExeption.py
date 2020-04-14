@@ -27,6 +27,7 @@ class PredictableInvalidArgumentException(PredictableException):
         else:
             return self.massage
 
+
 class PredictableDuplicateColumnException(PredictableException):
     def handle_me(self):
         text = "There is at least one column in your 'columns' field duplicated, and the first one is "
