@@ -1,4 +1,4 @@
-from Controller.PredictableExeption import PredictableUnknownKeyException
+from Controller.PredictableExeption import PredictableUnknownKeyException, PredictableInvalidArgumentException
 
 
 # This function create a table with unique key(s)
@@ -7,8 +7,19 @@ def create_table_with_unique(table, column, unique):
     # If not null, then return error
     error = None
 
-    # parse the list of columns from string into array
+    # Try to parse the table variable in order to detect exception.
+    tables = table.split(",")
+    if len(table) == 0:
+        raise PredictableInvalidArgumentException("1")
+    elif len(table) > 1:
+        raise PredictableInvalidArgumentException("2")
+
+    # Parse the list of columns from string into array.
     columns = column.split(",")
+    # Now, check the duplication in columns.
+    for elem in columns:
+        if columns.count(elem) > 1:
+            raise
 
     # Parse the list of unique keys from string into array.
     # Because a unique key can be composite key with a form of '(c1,c2)',
@@ -40,7 +51,7 @@ def create_table_with_unique(table, column, unique):
             try:
                 end = unique.index(')')
             except ValueError as v:
-                raise
+                raise PredictableInvalidArgumentException("3")
             except Exception as e:
                 raise e
             prent += 1
@@ -73,6 +84,7 @@ def create_table_with_unique(table, column, unique):
                 raise PredictableUnknownKeyException(col_in_key[i])
             j += 1
         i += 1
+
 
 
 
