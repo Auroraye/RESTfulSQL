@@ -2,9 +2,16 @@ from Controller.PredictableExeption import PredictableException
 from Controller.TableController import create_table
 from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
+<<<<<<< HEAD
 from flask_restplus import Api, Resource, fields
 from Unitility.MySQLInfo import db_query
 from Unitility.MySQLInfo import password, host, port, user, database
+=======
+from flask import Flask, request, jsonify
+from flask_restplus import Api, Resource, fields, reqparse
+import json
+
+>>>>>>> 6e54f3bb0d5234922e894c818a35a5fe7c913d8c
 
 flask_app = Flask(__name__)
 app = Api(app=flask_app,
@@ -20,15 +27,24 @@ ex_app = app
 
 flask_app.config['MYSQL_HOST'] = 'localhost'
 flask_app.config['MYSQL_USER'] = 'root'
+<<<<<<< HEAD
+=======
+
+flask_app.config['MYSQL_DB'] = 'company'
+>>>>>>> 6e54f3bb0d5234922e894c818a35a5fe7c913d8c
 
 flask_app.config['MYSQL_DB'] = 'company'
 
 mysql = MySQL(flask_app)
 
 name_space = app.namespace('names', description='Manage names')
+<<<<<<< HEAD
 table_space = app.namespace('Table', description='Manage tables')
 metadata_space = app.namespace('Metadata', description='Manage metadata')
 tabledata_space = app.namespace('Table/Data', description='Manage data records')
+=======
+metadata_space = app.namespace('Metadata', description='Manage metadata')
+>>>>>>> 6e54f3bb0d5234922e894c818a35a5fe7c913d8c
 
 model = app.model('Name Model',
                   {'name': fields.String(required=True,
@@ -36,6 +52,31 @@ model = app.model('Name Model',
                                          help="Name cannot be blank.")})
 
 list_of_names = {}
+
+
+def db_query(query, args):
+    """
+    A handler method for calling database procedures.
+
+    :param query: the name of the query to be executed
+    :type query: str
+    :param args: arguments to pass in to the procedure
+    :type args: tuple
+    :return: a 2D tuple for result (becomes () if there is error), an error message (None if no error)
+    :rtype: (tuple, str)
+    """
+
+    cur = mysql.connection.cursor()
+    result, error = (), None
+    try:
+        cur.execute(query, args)
+        result = cur.fetchall()
+    except:
+        error = mysql.connection.error()
+    finally:
+        cur.close()
+        mysql.connection.commit()
+    return result, error
 
 
 @name_space.route("/<int:id>")
@@ -88,6 +129,7 @@ class TableClass(Resource):
     @app.doc(responses={200: 'OK', 400: 'Invalid Argument', 500: 'Mapping Key Error'})
     @app.expect(table_model)
     def post(self):
+<<<<<<< HEAD
         try:
             table = request.json['name']
             column = request.json['columns']
@@ -102,6 +144,10 @@ class TableClass(Resource):
         except Exception as e:
             table_space.abort(
                 400, e.__doc__, status="Could not save information", statusCode="400")
+=======
+        languages.append(app.payload)
+        return {'result' : 'Language added'}, 201
+>>>>>>> 6e54f3bb0d5234922e894c818a35a5fe7c913d8c
 
 
 @metadata_space.route("/<table_name>")
@@ -110,21 +156,33 @@ class MainClass(Resource):
     def get(self, table_name):
         resultlist = []
         if table_name == 'TABLE':
+<<<<<<< HEAD
             result, error = db_query(mysql, 'SHOW FULL TABLES IN company;', None)
+=======
+            result, error = db_query('SHOW FULL TABLES IN company;', None)
+>>>>>>> 6e54f3bb0d5234922e894c818a35a5fe7c913d8c
             for item in result:
                 temp = {"Tables": item[0],
                         "Table_type": item[1]
                         }
                 resultlist.append(temp)
         elif table_name == 'VIEW':
+<<<<<<< HEAD
             result, error = db_query(mysql, 'SHOW FULL TABLES IN company WHERE TABLE_TYPE LIKE \'VIEW\';', None)
+=======
+            result, error = db_query('SHOW FULL TABLES IN company WHERE TABLE_TYPE LIKE \'VIEW\';', None)
+>>>>>>> 6e54f3bb0d5234922e894c818a35a5fe7c913d8c
             for item in result:
                 temp = {"Views": item[0],
                         "Table_type": item[1]
                         }
                 resultlist.append(temp)
         else:
+<<<<<<< HEAD
             result, error = db_query(mysql, 'DESCRIBE {};'.format(table_name), None)
+=======
+            result, error = db_query('DESCRIBE {};'.format(table_name), None)
+>>>>>>> 6e54f3bb0d5234922e894c818a35a5fe7c913d8c
             for item in result:
                 # temp = jsonify(Field=item[0], Type=item[1], Null=item[2], Key=item[3])
                 temp = {"Field": item[0],
@@ -136,3 +194,7 @@ class MainClass(Resource):
         resultTuple = tuple(resultlist)
         return jsonify(resultTuple)
         # return jsonify([user for user in result])
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6e54f3bb0d5234922e894c818a35a5fe7c913d8c
