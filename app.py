@@ -63,7 +63,7 @@ class TableList(Resource):
     def delete(self, table_name):
         status, message, error = delete_table(table_name, mysql)
         if (error):
-            table_space.abort(500, message)
+            table_space.abort(500, error)
         return {"message": message}, status
 
 
