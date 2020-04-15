@@ -60,9 +60,6 @@ def create_table(table, column, unique, mysql):
             if comma == 0:
                 # If there is an empty key, then skip it.
                 unique = unique[1:]
-            elif comma == -1:
-                uniques.append(unique)
-                unique = ""
             else:
                 # Cut the single key off from the tring and push it into the array.
                 single_key = unique[0:comma]
@@ -134,4 +131,4 @@ def delete_table(table_name, mysql):
     message = "Table {} is deleted".format(table_name)
     result, error = db_query(mysql, "DROP TABLE " + table_name)
 
-    return status, message, None, error
+    return status, message, error
