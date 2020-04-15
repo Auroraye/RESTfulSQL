@@ -24,6 +24,9 @@ class PredictableInvalidArgumentException(PredictableException):
         elif self.massage == "3":
             text = "Please check the parentheses in your 'uniques' field."
             return text
+        elif self.massage == "4":
+            text = "Only one table can be updated each time, please remove other tables from the 'table' field."
+            return text
         else:
             return self.massage
 
@@ -32,5 +35,10 @@ class PredictableDuplicateColumnException(PredictableException):
     def handle_me(self):
         text = "There is at least one column in your 'columns' field duplicated, and the first one is "
         text = text + self.massage + "."
+        return text
+
+class PredictableColumnNumberMismatchException(PredictableException):
+    def handle_me(self):
+        text = "The number of input values and input columns are mismatched."
         return text
 

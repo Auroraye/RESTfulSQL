@@ -8,6 +8,7 @@ from flask_restplus import Api, Resource, fields, reqparse
 from Controller.MetadataController import *
 from Controller.PredictableExeption import PredictableException
 from Controller.TableController import create_table, delete_table
+from Controller.TabledataController import *
 
 # Import env variable
 import os
@@ -30,8 +31,7 @@ mysql = MySQL(flask_app)
 
 table_space = api.namespace("table", description="Manage tables")
 metadata_space = api.namespace("metadata", description="Manage metadata")
-tabledata_space = api.namespace(
-    "table/data", description="Manage data records")
+tabledata_space = api.namespace("table/data", description="Manage data records")
 
 
 table_model = api.model("Table Model",
@@ -75,3 +75,19 @@ class Metadata(Resource):
     def get(self, table_name):
         status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
         return {"message": message, "data": data}, status
+
+@tabledata_space.route("/<table_name>")
+class Tabledata(Resource):
+    @api.doc(responses={200: "OK", 400: "Invalid Argument", 500: "Mapping Key Error"})
+    def update(self, table_name):
+        try:
+            table = table_name
+            column = request.json["columns"]
+            value = request.json["value"]
+            conditions = request.json["conditions"]
+            status, message, data, error = update_tabledata(table, column, unique, mysql)
+            return {"message": message}, status
+
+    def delete(self, table_name, column):
+        status, message, data, error = delete_tabledata(table_name, column, mysql)
+        return {"message": message}, status
