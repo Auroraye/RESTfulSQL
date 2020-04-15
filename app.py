@@ -82,4 +82,5 @@ class Metadata(Resource):
     '''
     def get(self, table_name):
         status, message, data, error = get_metadata(table_name, mysql, current_database)
-        return {"message": message}, status
+        return {"message": message, "data": data}, status
+
