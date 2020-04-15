@@ -131,4 +131,4 @@ def delete_table(table_name, mysql):
     message = "Table {} is deleted".format(table_name)
     result, error = db_query(mysql, "DROP TABLE " + table_name)
 
-    return status, message, error
+    return status, message, None, error
