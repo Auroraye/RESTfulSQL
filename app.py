@@ -73,6 +73,13 @@ class Table(Resource):
         return {"message": message}, status
 
 
+metadata_model = api.model('Metadata Model',
+                        {'columns': fields.String(required=True,
+                                                  description="Name of the columns"),
+                         'type': fields.String(required=True,
+                                               description="Type to be modified")
+                         })
+
 @metadata_space.route("/<table_name>")
 class Metadata(Resource):
     '''
@@ -82,4 +89,12 @@ class Metadata(Resource):
     '''
     def get(self, table_name):
         status, message, data, error = get_metadata(table_name, mysql, current_database)
+        return {"message": message, "data": data}, status
+
+
+    @api.expect(metadata_model)
+    def post(self, table_name):
+        op_type = request.json['type']
+        column_list = request.json['columns']
+        status, message, data, error = post_metadata(table_name, mysql, column_list, op_type)
         return {"message": message, "data": data}, status

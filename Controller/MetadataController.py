@@ -1,5 +1,6 @@
 from util.QueryHelper import db_query
 
+
 def get_metadata(table_name, mysql, current_database):
     resultlist = []
     error = ""
@@ -40,3 +41,7 @@ def get_metadata(table_name, mysql, current_database):
         message = "Failed. Error: " + error
     return status, message, data, error
 
+
+def post_metadata(table_name, mysql, col_list, op_type):
+    if op_type == 'U':
+    elif op_type == 'F'
