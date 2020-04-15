@@ -1,5 +1,5 @@
 from util.QueryHelper import db_query
-from Controller.PredictableExeption import *
+from controller.PredictableExeption import *
 
 def update_tabledata(table, column, value, condition, mysql):
     # Try to parse the table variable in order to detect exception.

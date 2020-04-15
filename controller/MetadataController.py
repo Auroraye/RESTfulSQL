@@ -1,4 +1,4 @@
-from Controller.PredictableExeption import *
+from controller.PredictableExeption import *
 from util.QueryHelper import db_query
 
 
