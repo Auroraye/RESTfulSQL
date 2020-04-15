@@ -1,21 +1,4 @@
-localhost = "localhost"
-localport = 3306
-localuser = "4440user"
-localpass = "4440password"
-localbase = "4440db"
-sharedhost = "db4free.net"
-sharedport = 3306
-shareduser = "mxkezffynken"
-sharedpass = "XUWNG3gdFw82"
-sharedbase = ""
-host = localhost
-port = localport
-user = localuser
-password = localpass
-database = localbase
-
-
-def db_query(mysql, query, args):
+def db_query(mysql, query, args=None):
     """
     A handler method for calling database procedures.
     :param query: the name of the query to be executed

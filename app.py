@@ -19,7 +19,7 @@ api = Api(app=flask_app,
           description="Manage names of various users of the application")
 
 flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
-flask_app.config["MYSQL_PORT"] = os.getenv("MYSQL_PORT")
+flask_app.config["MYSQL_PORT"] = int(os.getenv("MYSQL_PORT"))
 flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
 flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
 flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
@@ -65,11 +65,13 @@ class TableList(Resource):
 @table_space.route("/<string:table_name>")
 class Table(Resource):
     def delete(self, table_name):
-        status, message, data, error = delete_table(table_name, "")
+        status, message, error = delete_table(table_name, mysql)
+        if (error):
+            table_space.abort(500, message)
         return {"message": message}, status
 
 
-@metadata_space.route("/<table_name>")
+@metadata_space.route("/<string:table_name>")
 class Metadata(Resource):
     '''
     if input is 'TABLE', output all tables in the db

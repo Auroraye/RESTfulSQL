@@ -1,4 +1,5 @@
 from controller.PredictableExeption import *
+from util.QueryHelper import db_query
 
 
 # This function create a table with unique key(s)
@@ -124,16 +125,12 @@ def create_table(table, column, unique, mysql):
     con.commit()
     return {"success": "Table " + table + " is created."}
 
-def delete_table(table, mysql):
-    # SQL Operation
-    # TODO
-    
+def delete_table(table_name, mysql):
     status = 200
-    data = ""
-    message = 'Table ' + table + ' is deleted'
-    error = ""
+    message = "Table {} is deleted".format(table_name)
+    result, error = db_query(mysql, "DROP TABLE " + table_name)
 
-    return status, message, data, error
+    return status, message, error
 
 
 
