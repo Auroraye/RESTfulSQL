@@ -88,7 +88,7 @@ class Metadata(Resource):
         return organize_return(status, message, data, error)
 
     @api.expect(column_model)
-    def update(self, table_name):
+    def post(self, table_name):
         name = table_name
         column = request['columns']
         kind = request['types']
@@ -101,7 +101,7 @@ class Metadata(Resource):
 class Tabledata(Resource):
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
     @api.expect(tabledata_model)
-    def update(self, table_name):
+    def post(self, table_name):
         try:
             table = table_name
             column = request.json["columns"]

@@ -126,7 +126,7 @@ def update_column(table, column, operation, value, mysql):
         if "type" in by_col[col]:
             typ = by_typ["type"]
         else:
-            tem_com = "SHOW `" + col + "` FROM `" + table + "`;"
+            tem_com = "SHOW COLUMNS FROM `" + table + "` WHERE `Field` = \"" + col + "\";"
             try:
                 cur.execute(tem_com)
                 result = cur.fatch_all()
