@@ -1,7 +1,7 @@
 from Controller.PredictableExeption import PredictableException
 from Controller.TableController import create_table
 from flask_mysqldb import MySQL
-from Unitility.MySQLInfo import *
+from util.MySQLInfo import *
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
 import json
