@@ -27,7 +27,6 @@ flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
 flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
 
 mysql = MySQL(flask_app)
-current_database = ""
 
 table_space = api.namespace("table", description="Manage tables")
 metadata_space = api.namespace("metadata", description="Manage metadata")
@@ -80,5 +79,5 @@ class Metadata(Resource):
     if input is <table_name>, output metadata for that table
     '''
     def get(self, table_name):
-        status, message, data, error = get_metadata(table_name, mysql, current_database)
+        status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
         return {"message": message, "data": data}, status
