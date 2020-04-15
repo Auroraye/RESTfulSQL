@@ -1,12 +1,8 @@
 from Controller.PredictableExeption import PredictableException
 from Controller.TableController import create_table
-from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
-
-from flask_restplus import Api, Resource, fields
 from Unitility.MySQLInfo import db_query
 from Unitility.MySQLInfo import password, host, port, user, database
-
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
 import json
@@ -31,12 +27,9 @@ flask_app.config['MYSQL_USER'] = 'root'
 flask_app.config['MYSQL_DB'] = 'company'
 
 
-flask_app.config['MYSQL_DB'] = 'company'
-
 mysql = MySQL(flask_app)
 
 name_space = app.namespace('names', description='Manage names')
-
 table_space = app.namespace('Table', description='Manage tables')
 metadata_space = app.namespace('Metadata', description='Manage metadata')
 tabledata_space = app.namespace('Table/Data', description='Manage data records')
@@ -49,31 +42,6 @@ model = app.model('Name Model',
                                          help="Name cannot be blank.")})
 
 list_of_names = {}
-
-
-def db_query(query, args):
-    """
-    A handler method for calling database procedures.
-
-    :param query: the name of the query to be executed
-    :type query: str
-    :param args: arguments to pass in to the procedure
-    :type args: tuple
-    :return: a 2D tuple for result (becomes () if there is error), an error message (None if no error)
-    :rtype: (tuple, str)
-    """
-
-    cur = mysql.connection.cursor()
-    result, error = (), None
-    try:
-        cur.execute(query, args)
-        result = cur.fetchall()
-    except:
-        error = mysql.connection.error()
-    finally:
-        cur.close()
-        mysql.connection.commit()
-    return result, error
 
 
 @name_space.route("/<int:id>")
