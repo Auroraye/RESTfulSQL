@@ -130,3 +130,5 @@ def update_column(table, column, operation, value, mysql):
             try:
                 cur.execute(tem_com)
                 result = cur.fatch_all()
+            except Exception as e:
+                raise e
