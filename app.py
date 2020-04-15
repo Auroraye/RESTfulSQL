@@ -1,11 +1,13 @@
 import json
 from flask_mysqldb import MySQL
+
+from Controller.MetadataController import get_metadata
 from util.QueryHelper import *
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
-from controller.MetadataController import *
-from controller.PredictableExeption import PredictableException
-from controller.TableController import create_table, delete_table
+from Controller.MetadataController import *
+from Controller.PredictableExeption import PredictableException
+from Controller.TableController import create_table, delete_table
 
 # Import env variable
 import os
