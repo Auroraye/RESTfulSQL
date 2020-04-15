@@ -65,3 +65,55 @@ def update_column(table, column, operation, value, mysql):
     values = value.split(",")
     if not len(columns) == len(operations) == len(values):
         raise PredictableNumberOfParameterNotMatchException("columns,types,values")
+
+    # Reformat the parameters while checking three kinds of potential error:
+    # 1. One kind of operation apply to the same column more than one times;
+    # 2. If there are invalid or undefined operation;
+    # 3. If the values of the corresponding operation defined.
+    by_col = {}
+    i = 0
+    defined_type = ["default", "type", "nullable"]
+    defined_type_value = ["int", "float", "double", "decimal", "date", "string", "char", "varchar"]
+    defined_nullable_value = ["yes", "no", "true", "false", "1", "0"]
+    while i < len(columns):
+        col = columns[i]
+        typ = operations[i]
+        val = values[i]
+        if typ not in defined_type:
+            raise PredictableInvalidArgumentException("4")
+        if typ == "type":
+            if val not in defined_type_value:
+                if val.startwith("char") or val.startwith("varchar") or val.startwith("int"):
+                    try:
+                        b = val.index("(")
+                        e = val.index(")")
+                        if e < b:
+                            raise Exception()
+                        num = int(val[b+1:e])
+                    except Exception as e:
+                        raise PredictableInvalidArgumentException("5")
+                else:
+                    raise PredictableInvalidArgumentException("5")
+            elif val == "float" or val == "double":
+                val = "decimal"
+            elif val == "string" or val == "varchar":
+                val = "varchar(200)"
+            elif val == "char":
+                val = "char(200)"
+        elif typ == "nullable":
+            val = value.lower()
+            if val not in defined_nullable_value:
+                raise PredictableInvalidArgumentException("5")
+            elif val == "true" or val == "yes" or val == "1":
+                val = "null"
+            else:
+                val = "not null"
+        if col not in by_col:
+            by_typ = {typ: val}
+            by_col[col] = by_typ
+        else:
+            if typ in by_col[col]:
+                raise PredictableConflictOperationException("columns,"+col)
+            else:
+                by_col[col][typ] = val
+        i += 1

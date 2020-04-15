@@ -24,6 +24,12 @@ class PredictableInvalidArgumentException(PredictableException):
         elif self.massage == "3":
             text = "Please check the parentheses in your 'uniques' field."
             return text
+        elif self.massage == "4":
+            text = "Only 'default', 'type', and 'nullable' are allowed for 'types' field, please check the field."
+            return text
+        elif self.massage == "5":
+            text = "There is a value that is undefined for the corresponding type in the 'values' field."
+            return text
         else:
             return self.massage
 
@@ -48,4 +54,11 @@ class PredictableNumberOfParameterNotMatchException(PredictableException):
         for para in list_of_params:
             text += "'" + para + "', "
         text += "have different number of elements, but they are supposed to have equal number of elements."
+        return text
+
+
+class PredictableConflictOperationException(PredictableException):
+    def handle_me(self):
+        info = self.massage.split(",")
+        text = "There is a conflict/overlapped operation on '" + info[0] + "' " + info[1] + "."
         return text
