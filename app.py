@@ -90,9 +90,9 @@ class Metadata(Resource):
     @api.expect(column_model)
     def post(self, table_name):
         name = table_name
-        column = request['columns']
-        kind = request['types']
-        value = request['values']
+        column = request.json['columns']
+        kind = request.json['types']
+        value = request.json['values']
         status, message, data, error = update_column(name, column, kind, value, mysql)
         return organize_return(status, message, data, error)
 

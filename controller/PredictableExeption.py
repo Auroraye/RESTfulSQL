@@ -71,3 +71,11 @@ class PredictableColumnNumberMismatchException(PredictableException):
     def handle_me(self):
         text = "The number of input values and input columns are mismatched."
         return text
+
+
+class PredictableTypeNotMatchException(PredictableException):
+    def handle_me(self):
+        fields = self.massage.split(",")
+        text = "The value does not match the supposed type. Suppose to have '" + fields[0] + "' typed value,"
+        text += "but get value '" + fields[1] + "'."
+        return text

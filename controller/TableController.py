@@ -61,13 +61,16 @@ def create_table(table, column, unique, mysql):
                 # If there is an empty key, then skip it.
                 unique = unique[1:]
             else:
-                # Cut the single key off from the tring and push it into the array.
-                single_key = unique[0:comma]
-                uniques.append(single_key)
+                # Cut the single key off from the string and push it into the array.
+
                 if comma == -1:
+                    single_key = unique
+                    uniques.append(single_key)
                     # If this is the last key, then empty the string.
                     unique = ""
                 else:
+                    single_key = unique[0:comma]
+                    uniques.append(single_key)
                     unique = unique[comma+1:]
     # Once all the unique keys are parsed, we need to check if all the key are defined in columns.
     i = 0

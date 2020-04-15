@@ -101,7 +101,7 @@ def update_column(table, column, operation, value, mysql):
             elif val == "char":
                 val = "char(200)"
         elif typ == "nullable":
-            val = value.lower()
+            val = val.lower()
             if val not in defined_nullable_value:
                 raise PredictableInvalidArgumentException("5")
             elif val == "true" or val == "yes" or val == "1":
@@ -124,11 +124,49 @@ def update_column(table, column, operation, value, mysql):
         command = "ALTER TABLE `" + table + "`"
         typ = ""
         if "type" in by_col[col]:
-            typ = by_typ["type"]
+            typ = by_col[col]["type"]
         else:
-            tem_com = "SHOW COLUMNS FROM `" + table + "` WHERE `Field` = \"" + col + "\";"
+            tem_com = "SHOW COLUMNS FROM `" + table + "` WHERE `Field` = \'" + col + "\';"
             try:
                 cur.execute(tem_com)
-                result = cur.fatch_all()
+                result = cur.fetchall()
+                row = result[0]
+                typ = row[1]
             except Exception as e:
                 raise e
+        if "type" in by_col[col] or "nullable" in by_col[col]:
+            command += " MODIFY `" + col + "` " + typ
+            if "nullable" in by_col[col]:
+                command += " " + by_col[col]["nullable"]
+            try:
+                cur.execute(command)
+            except Exception as e:
+                con.abort()
+                cur.close()
+                raise e
+        if "default" in by_col[col]:
+            val = by_col[col]["default"]
+            try:
+                if typ == "int":
+                    val = int(val)
+                elif typ == "decimal":
+                    val = float(val)
+                elif typ == "date":
+                    val = val
+                else:
+                    val = "\"" + val + "\""
+            except Exception as e:
+                con.abort()
+                cur.close()
+                raise PredictableTypeNotMatchException(typ + "," + val)
+            # ALTER City SET DEFAULT 'Sandnes';
+            command = "ALTER TABLE `" + table + "` ALTER `" + col + "` SET DEFAULT " + val + ";"
+            try:
+                cur.execute(command)
+            except Exception as e:
+                con.abort()
+                cur.close()
+                raise e
+    status = 200
+    message = "Table " + table + "'s metadata has been changed accordingly."
+    return status, message, None, None
