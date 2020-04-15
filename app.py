@@ -44,6 +44,9 @@ tabledata_model = api.model("Tabledata Model",
                          "values": fields.String(required=True),
                          "conditions": fields.String()})
 
+tabledata_delete_model = api.model("Tabledata Delete Model",
+                        {"column": fields.String(required=True)})
+
 
 @table_space.route("/<string:table_name>")
 class TableList(Resource):
@@ -116,8 +119,9 @@ class Tabledata(Resource):
             table_space.abort(
                 400, e.__doc__, status="Could not update information", statusCode="400")
 
-    @api.doc(responses={200: 'OK'},
-    params={'column': 'Specify the Column need to be deleted'})
-    def delete(self, table_name, column):
+    @api.doc(responses={200: 'OK'})
+    @api.expect(tabledata_delete_model)
+    def delete(self, table_name):
+        column = request.json["column"]
         status, message, data, error = delete_tabledata(table_name, column, mysql)
         return {"message": message}, status
