@@ -39,3 +39,13 @@ class PredictableTableNotFoundException(PredictableException):
     def handle_me(self):
         text = "The table, '" + self.massage + "' is not found in the database."
         return text
+
+
+class PredictableNumberOfParameterNotMatchException(PredictableException):
+    def handle_me(self):
+        list_of_params = self.massage.split(",")
+        text = "The parameters, "
+        for para in list_of_params:
+            text += "'" + para + "', "
+        text += "have different number of elements, but they are supposed to have equal number of elements."
+        return text

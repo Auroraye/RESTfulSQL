@@ -58,3 +58,10 @@ def update_column(table, column, operation, value, mysql):
         cur.execute(command)
     except Exception as e:
         raise PredictableTableNotFoundException(table)
+
+    # Then parse the other parameters.
+    columns = column.split(",")
+    operations = operation.split(",")
+    values = value.split(",")
+    if not len(columns) == len(operations) == len(values):
+        raise PredictableNumberOfParameterNotMatchException("columns,types,values")
