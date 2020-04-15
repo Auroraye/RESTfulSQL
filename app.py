@@ -1,6 +1,7 @@
 import json
 from flask_mysqldb import MySQL
 
+from Controller.MetaController import organize_return
 from Controller.MetadataController import get_metadata
 from util.QueryHelper import *
 from flask import Flask, request, jsonify
@@ -62,7 +63,13 @@ class TableList(Resource):
 
     def delete(self, table_name):
         status, message, data, error = delete_table(table_name, mysql)
-        return {"message": message}, status
+        return organize_return(status, message, data, error)
+
+
+column_model = api.models("Column Model",
+                          {"columns": fields.String(required=True),
+                           "types": fields.String(required=True),
+                           "values": fields.String(required=True)})
 
 
 @metadata_space.route("/<table_name>")
@@ -74,4 +81,13 @@ class Metadata(Resource):
     '''
     def get(self, table_name):
         status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
-        return {"message": message, "data": data}, status
+        return organize_return(status, message, data, error)
+
+    @api.expect(column_model)
+    def update(self, table_name):
+        name = table_name
+        column = request['columns']
+        kind = request['types']
+        value = request['values']
+        status, message, data, error = update_column(name, column, kind, value, mysql)
+        return organize_return(status, message, data, error)

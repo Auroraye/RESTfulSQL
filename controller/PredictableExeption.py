@@ -34,3 +34,8 @@ class PredictableDuplicateColumnException(PredictableException):
         text = text + self.massage + "."
         return text
 
+
+class PredictableTableNotFoundException(PredictableException):
+    def handle_me(self):
+        text = "The table, '" + self.massage + "' is not found in the database."
+        return text
