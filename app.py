@@ -22,7 +22,7 @@ api = Api(app=flask_app,
           description="Manage names of various users of the application")
 
 flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
-flask_app.config["MYSQL_PORT"] = int(os.getenv("MYSQL_PORT"))
+flask_app.config["MYSQL_PORT"] = 3306
 flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
 flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
 flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
@@ -43,6 +43,10 @@ tabledata_model = api.model("Tabledata Model",
                          "values": fields.String(required=True),
                          "conditions": fields.String()})
 
+column_model = api.model("Column Model",
+                          {"columns": fields.String(required=True),
+                           "types": fields.String(required=True),
+                           "values": fields.String(required=True)})
 
 @table_space.route("/<string:table_name>")
 class TableList(Resource):
@@ -66,11 +70,18 @@ class TableList(Resource):
                 400, e.__doc__, status="Could not save information", statusCode="400")
     
     def delete(self, table_name):
+<<<<<<< Updated upstream
         status, message, data, error = delete_table(table_name, mysql)
         return {"message": message}, status
 
 
 @metadata_space.route("/<table_name>")
+=======
+        status, message, error = delete_table(table_name, mysql)
+        return organize_return(status, message, data, error)
+
+@metadata_space.route("/<string:table_name>")
+>>>>>>> Stashed changes
 class Metadata(Resource):
     '''
     if input is 'TABLE', output all tables in the db
@@ -92,7 +103,7 @@ class Tabledata(Resource):
             value = request.json["value"]
             conditions = request.json["conditions"]
             status, message, data, error = update_tabledata(table, column, value, conditions, mysql)
-            return {"message": message}, status
+            return organize_return(status, message, data, error)
         except PredictableException as e:
             table_space.abort(
                 500, e.__doc__, status=e.handle_me(), statusCode="300")
@@ -104,4 +115,8 @@ class Tabledata(Resource):
     params={'column': 'Specify the Column need to be deleted'})
     def delete(self, table_name, column):
         status, message, data, error = delete_tabledata(table_name, column, mysql)
+<<<<<<< Updated upstream
         return {"message": message}, status
+=======
+        return organize_return(status, message, data, error)
+>>>>>>> Stashed changes

@@ -1,4 +1,8 @@
 from Controller.PredictableExeption import *
+<<<<<<< Updated upstream
+=======
+from util.QueryHelper import db_query
+>>>>>>> Stashed changes
 
 
 # This function create a table with unique key(s)
