@@ -59,18 +59,14 @@ class TableList(Resource):
             unique = request.json["uniques"]
             status, message, data, error = create_table(table, column, unique, mysql)
             return {"message": message}, status
-        except KeyError as e:
-            table_space.abort(
-                500, e.__doc__, status="Could not save information", statusCode="500")
         except PredictableException as e:
             table_space.abort(
                 500, e.__doc__, status=e.handle_me(), statusCode="300")
         except Exception as e:
-            table_space.abort(
-                400, e.__doc__, status="Could not save information", statusCode="400")
+            raise e
     
     def delete(self, table_name):
-        status, message, error = delete_table(table_name, mysql)
+        status, message, data, error = delete_table(table_name, mysql)
         return organize_return(status, message, data, error)
 
 
@@ -82,11 +78,11 @@ column_model = api.model("Column Model",
 
 @metadata_space.route("/<string:table_name>")
 class Metadata(Resource):
-    '''
+    """
     if input is 'TABLE', output all tables in the db
     if input is 'VIEW', output all views in the db
     if input is <table_name>, output metadata for that table
-    '''
+    """
     def get(self, table_name):
         status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
         return organize_return(status, message, data, error)
@@ -100,11 +96,12 @@ class Metadata(Resource):
         status, message, data, error = update_column(name, column, kind, value, mysql)
         return organize_return(status, message, data, error)
 
+
 @tabledata_space.route("/<table_name>")
 class Tabledata(Resource):
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
     @api.expect(tabledata_model)
-    def post(self, table_name):
+    def update(self, table_name):
         try:
             table = table_name
             column = request.json["columns"]
