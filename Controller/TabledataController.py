@@ -7,7 +7,7 @@ def update_tabledata(table, column, value, condition, mysql):
     if len(tables) == 0:
         raise PredictableInvalidArgumentException("1")
     elif len(tables) > 1:
-        raise PredictableInvalidArgumentException("4")
+        raise PredictableInvalidArgumentException("6")
 
     # Parse the list of columns from string into array.
     columns = column.split(",")
