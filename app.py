@@ -38,6 +38,11 @@ table_model = api.model("Table Model",
                         {"columns": fields.String(required=True),
                          "uniques": fields.String()})
 
+tabledata_model = api.model("Tabledata Model",
+                        {"columns": fields.String(required=True),
+                         "values": fields.String(required=True),
+                         "conditions": fields.String()})
+
 
 @table_space.route("/<string:table_name>")
 class TableList(Resource):
@@ -59,7 +64,7 @@ class TableList(Resource):
         except Exception as e:
             table_space.abort(
                 400, e.__doc__, status="Could not save information", statusCode="400")
-
+    
     def delete(self, table_name):
         status, message, data, error = delete_table(table_name, mysql)
         return {"message": message}, status
@@ -78,16 +83,25 @@ class Metadata(Resource):
 
 @tabledata_space.route("/<table_name>")
 class Tabledata(Resource):
-    @api.doc(responses={200: "OK", 400: "Invalid Argument", 500: "Mapping Key Error"})
-    def update(self, table_name):
+    @api.doc(responses={200: "OK", 400: "Invalid Argument"})
+    @api.expect(tabledata_model)
+    def post(self, table_name):
         try:
             table = table_name
             column = request.json["columns"]
             value = request.json["value"]
             conditions = request.json["conditions"]
-            status, message, data, error = update_tabledata(table, column, unique, mysql)
+            status, message, data, error = update_tabledata(table, column, value, conditions, mysql)
             return {"message": message}, status
+        except PredictableException as e:
+            table_space.abort(
+                500, e.__doc__, status=e.handle_me(), statusCode="300")
+        except Exception as e:
+            table_space.abort(
+                400, e.__doc__, status="Could not update information", statusCode="400")
 
+    @api.doc(responses={200: 'OK', 400: 'Invalid Argument'},
+    params={'column': 'Specify the Column need to be deleted'})
     def delete(self, table_name, column):
         status, message, data, error = delete_tabledata(table_name, column, mysql)
         return {"message": message}, status

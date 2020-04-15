@@ -35,11 +35,13 @@ def update_tabledata(table, column, value, condition, mysql):
     con.autocommit = False
 
     # Now, we can start to communicate with the database.
-    command = "UPDATE `" + table + "` ( "
-    command = command + "auto_generated_id int not null primary key auto_increment"
+    command = "UPDATE `" + table + "` "
+    command = command + "SET "
+    x = 0
     for elem in columns:
-        command = command + " , `" + elem + "` varchar(200)"
-    command = command + ");"
+        command = command + "`" + elem + "` = `" + value[x] + "`, "
+        x+=1
+    command = command + "Where `" + condition + "`;"
     try:
         cur.execute(command)
     except Exception as e:
@@ -54,9 +56,9 @@ def update_tabledata(table, column, value, condition, mysql):
     message = "Table " + table + " is updated."
     return status, message, None, None
 
-def delete_tabledata(table, mysql):
-    command = "Alter TABLE `" + table +"`  ("
-    commnad = 
+def delete_tabledata(table, column, mysql):
+    command = "Alter TABLE `" + table +"` "
+    commnad = command + "DROP COLUMN `" + column + "`;"
     cur = mysql.connection.cursor()
     try:
         cur.execute(command)
@@ -67,7 +69,7 @@ def delete_tabledata(table, mysql):
     
     status = 200
     data = ""
-    message = "Table '" + table + "' is deleted."
+    message = "Column '" + column + "' is deleted."
     error = ""
 
     return status, message, data, error
