@@ -11,6 +11,7 @@ def get_metadata(table_name, mysql, current_database):
                     "Table_type": item[1]
                     }
             resultlist.append(temp)
+        message = "Success! Get all table info from " + current_database + "."
     elif table_name == 'VIEW':
         result, error = db_query(
             mysql, 'SHOW FULL TABLES IN {} WHERE TABLE_TYPE LIKE \'VIEW\';'.format(current_database), None)
@@ -19,6 +20,7 @@ def get_metadata(table_name, mysql, current_database):
                     "Table_type": item[1]
                     }
             resultlist.append(temp)
+        message = "Success! Get all view info from " + current_database + "."
     else:
         result, error = db_query(
             mysql, 'DESCRIBE {};'.format(table_name), None)
@@ -30,9 +32,9 @@ def get_metadata(table_name, mysql, current_database):
                     "Key": item[3]
                     }
             resultlist.append(temp)
-    message = resultlist
+        message = "Success! Get all column info from " + current_database + "."
+    data = resultlist
     status = 200
-    data = ""
     if error != None:
         status = 400
         message = "Failed. Error: " + error
