@@ -2,6 +2,7 @@ from util.QueryHelper import db_query
 
 def get_metadata(table_name, mysql, current_database):
     resultlist = []
+    error = ""
     if table_name == 'TABLE':
         result, error = db_query(
             mysql, 'SHOW FULL TABLES IN {};'.format(current_database), None)
@@ -32,6 +33,8 @@ def get_metadata(table_name, mysql, current_database):
     message = resultlist
     status = 200
     data = ""
-    error = ""
+    if error != None:
+        status = 400
+        message = "Failed. Error: " + error
     return status, message, data, error
 
