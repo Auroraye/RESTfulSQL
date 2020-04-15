@@ -3,7 +3,7 @@
 ## API Tutorial 	
 [https://towardsdatascience.com/working-with-apis-using-flask-flask-restplus-and-swagger-ui-7cf447deda7f](https://towardsdatascience.com/working-with-apis-using-flask-flask-restplus-and-swagger-ui-7cf447deda7f)
 
-## Python Requirements
+## Python Requirements 
 ```sh
 $ pip install flask
 $ pip install flask-restplus
