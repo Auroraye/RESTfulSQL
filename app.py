@@ -45,7 +45,7 @@ tabledata_model = api.model("Tabledata Model",
                          "conditions": fields.String()})
 
 tabledata_delete_model = api.model("Tabledata Delete Model",
-                        {"column": fields.String(required=True)})
+                        {"condition": fields.String(required=True)})
 
 
 @table_space.route("/<string:table_name>")
@@ -96,7 +96,6 @@ class Metadata(Resource):
         status, message, data, error = update_column(name, column, kind, value, mysql)
         return organize_return(status, message, data, error)
 
-
 @tabledata_space.route("/<table_name>")
 class Tabledata(Resource):
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
@@ -119,6 +118,6 @@ class Tabledata(Resource):
     @api.doc(responses={200: 'OK'})
     @api.expect(tabledata_delete_model)
     def delete(self, table_name):
-        column = request.json["column"]
-        status, message, data, error = delete_tabledata(table_name, column, mysql)
+        condition = request.json["condition"]
+        status, message, data, error = delete_tabledata(table_name, condition, mysql)
         return {"message": message}, status
