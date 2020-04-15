@@ -41,7 +41,8 @@ def update_tabledata(table, column, value, condition, mysql):
     for elem in columns:
         command = command + "`" + elem + "` = `" + value[x] + "`, "
         x+=1
-    command = command + "Where `" + condition + "`;"
+    if len(condition) != 0:
+        command = command + "Where `" + condition + "`;"
     try:
         cur.execute(command)
     except Exception as e:
