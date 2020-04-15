@@ -12,21 +12,13 @@ app = Api(app=flask_app,
           version="1.0",
           title="Name Recorder",
           description="Manage names of various users of the application")
-
-# flask_app.config['MYSQL_HOST'] = host
-# flask_app.config['MYSQL_PORT'] = port
-# flask_app.config['MYSQL_USER'] = user
-# flask_app.config['MYSQL_PASSWORD'] = password
-# flask_app.config['MYSQL_DB'] = database
-
-# change accordingly
-flask_app.config['MYSQL_HOST'] = 'localhost'
-flask_app.config['MYSQL_USER'] = 'root'
-flask_app.config['MYSQL_PASSWORD'] =
-flask_app.config['MYSQL_DB'] =
-
-
-mysql = MySQL(flask_app)
+flask_app.config['MYSQL_HOST'] = host
+flask_app.config['MYSQL_PORT'] = port
+flask_app.config['MYSQL_USER'] = user
+flask_app.config['MYSQL_PASSWORD'] = password
+flask_app.config['MYSQL_DB'] = database
+mysql = MySQL()
+mysql.init_app(app)
 
 name_space = app.namespace('names', description='Manage names')
 table_space = app.namespace('Table', description='Manage tables')

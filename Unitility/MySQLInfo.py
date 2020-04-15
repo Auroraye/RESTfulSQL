@@ -12,7 +12,6 @@ host = localhost
 port = localport
 user = localuser
 password = localpass
-database = localbase
 
 
 def db_query(mysql, query, args):

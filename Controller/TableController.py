@@ -127,4 +127,3 @@ def create_table(table, column, unique, mysql):
 
 
 
-
