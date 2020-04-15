@@ -117,3 +117,16 @@ def update_column(table, column, operation, value, mysql):
             else:
                 by_col[col][typ] = val
         i += 1
+
+    # Here start to change the columns.
+    con.autocommit = False
+    for col in by_col:
+        command = "ALTER TABLE `" + table + "`"
+        typ = ""
+        if "type" in by_col[col]:
+            typ = by_typ["type"]
+        else:
+            tem_com = "SHOW `" + col + "` FROM `" + table + "`;"
+            try:
+                cur.execute(tem_com)
+                result = cur.fatch_all()
