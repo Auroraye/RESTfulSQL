@@ -1,5 +1,5 @@
-from controller.PredictableExeption import PredictableException
-from controller.TableController import create_table, delete_table
+from Controller.PredictableExeption import PredictableException
+from Controller.TableController import create_table, delete_table
 from flask_mysqldb import MySQL
 from util.QueryHelper import *
 from flask import Flask, request, jsonify
