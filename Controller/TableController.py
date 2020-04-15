@@ -1,4 +1,4 @@
-from controller.PredictableExeption import *
+from Controller.PredictableExeption import *
 
 
 # This function create a table with unique key(s)
