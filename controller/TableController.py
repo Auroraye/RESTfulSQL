@@ -3,10 +3,6 @@ from Controller.PredictableExeption import *
 
 # This function create a table with unique key(s)
 def create_table(table, column, unique, mysql):
-    # Create error variable, after each mysql query, check if it is null.
-    # If not null, then return error
-    error = None
-
     # Try to parse the table variable in order to detect exception.
     tables = table.split(",")
     if len(tables) == 0:
@@ -122,16 +118,26 @@ def create_table(table, column, unique, mysql):
             raise e
 
     con.commit()
-    return {"success": "Table " + table + " is created."}
+    con.autocommit = True
+    cur.close()
+    status = 200
+    message = "Table " + table + " is created."
+    return status, message, None, None
 
 
 def delete_table(table, mysql):
-    # SQL Operation
-    # TODO
+    command = "DROP TABLE `" + table +"`;"
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute(command)
+    except Exception as e:
+        cur.close()
+        raise e
+    cur.close()
     
     status = 200
     data = ""
-    message = 'Table ' + table + ' is deleted'
+    message = "Table '" + table + "' is deleted."
     error = ""
 
     return status, message, data, error

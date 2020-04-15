@@ -21,7 +21,7 @@ api = Api(app=flask_app,
           description="Manage names of various users of the application")
 
 flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
-flask_app.config["MYSQL_PORT"] = os.getenv("MYSQL_PORT")
+flask_app.config["MYSQL_PORT"] = int(os.getenv("MYSQL_PORT"))
 flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
 flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
 flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
@@ -48,7 +48,8 @@ class TableList(Resource):
             table = table_name
             column = request.json["columns"]
             unique = request.json["uniques"]
-            return create_table(table, column, unique, mysql)
+            status, message, data, error = create_table(table, column, unique, mysql)
+            return {"message": message}, status
         except KeyError as e:
             table_space.abort(
                 500, e.__doc__, status="Could not save information", statusCode="500")
@@ -60,7 +61,7 @@ class TableList(Resource):
                 400, e.__doc__, status="Could not save information", statusCode="400")
 
     def delete(self, table_name):
-        status, message, data, error = delete_table(table_name, "")
+        status, message, data, error = delete_table(table_name, mysql)
         return {"message": message}, status
 
 
