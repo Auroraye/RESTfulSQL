@@ -23,7 +23,7 @@ def update_tabledata(table, column, value, condition, mysql):
         raise PredictableColumnNumberMismatchException(elem)
 
     # Try to parse the table variable in order to detect exception.
-    condition = condition.split(",")
+    # condition = condition.split(",")
 
     # Now, we have passed all the preconditions for the table creation.
     # The next step is to communicate with the database.
@@ -39,13 +39,14 @@ def update_tabledata(table, column, value, condition, mysql):
     command = command + "SET "
     x = 0
     for elem in columns:
-        command = command + "`" + elem + "` = `" + value[x] + "`, "
+        command = command + "`" + elem + "` = " + value[x] + " "
         x+=1
     if len(condition) != 0:
-        command = command + "Where `" + condition + "`;"
+        command = command + "Where " + condition + ";"
     try:
         cur.execute(command)
     except Exception as e:
+        print(command)
         con.rollback()
         cur.close()
         raise e

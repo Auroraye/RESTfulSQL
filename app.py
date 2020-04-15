@@ -104,7 +104,7 @@ class Tabledata(Resource):
         try:
             table = table_name
             column = request.json["columns"]
-            value = request.json["value"]
+            value = request.json["values"]
             conditions = request.json["conditions"]
             status, message, data, error = update_tabledata(table, column, value, conditions, mysql)
             return {"message": message}, status
@@ -112,6 +112,7 @@ class Tabledata(Resource):
             table_space.abort(
                 500, e.__doc__, status=e.hangdle_me(), statusCode="300")
         except Exception as e:
+            raise e
             table_space.abort(
                 400, e.__doc__, status="Could not update information", statusCode="400")
 
