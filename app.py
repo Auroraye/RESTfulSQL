@@ -100,7 +100,7 @@ class Tabledata(Resource):
             table_space.abort(
                 400, e.__doc__, status="Could not update information", statusCode="400")
 
-    @api.doc(responses={200: 'OK', 400: 'Invalid Argument'},
+    @api.doc(responses={200: 'OK'},
     params={'column': 'Specify the Column need to be deleted'})
     def delete(self, table_name, column):
         status, message, data, error = delete_tabledata(table_name, column, mysql)
