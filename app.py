@@ -19,8 +19,8 @@ load_dotenv()
 flask_app = Flask(__name__)
 api = Api(app=flask_app,
           version="1.0",
-          title="Name Recorder",
-          description="Manage names of various users of the application")
+          title="RESTfulSQL API",
+          description="A Restful API Wrapper for MYSQL")
 
 flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
 flask_app.config["MYSQL_PORT"] = 3306
