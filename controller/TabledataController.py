@@ -57,9 +57,9 @@ def update_tabledata(table, column, value, condition, mysql):
     message = "Table " + table + " is updated."
     return status, message, None, None
 
-def delete_tabledata(table, condition, mysql):
-    command = "DELETE FROM `" + table +"` "
-    commnad = command + "WHERE `" + condition + "`;"
+def delete_tabledata(table, column, mysql):
+    command = "Alter TABLE `" + table +"` "
+    commnad = command + "DROP COLUMN `" + column + "`;"
     cur = mysql.connection.cursor()
     try:
         cur.execute(command)
@@ -70,7 +70,7 @@ def delete_tabledata(table, condition, mysql):
     
     status = 200
     data = ""
-    message = " Row is deleted."
+    message = "Column '" + column + "' is deleted."
     error = ""
 
     return status, message, data, error

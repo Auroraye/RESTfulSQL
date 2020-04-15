@@ -45,7 +45,7 @@ tabledata_model = api.model("Tabledata Model",
                          "conditions": fields.String()})
 
 tabledata_delete_model = api.model("Tabledata Delete Model",
-                        {"condition": fields.String(required=True)})
+                        {"column": fields.String(required=True)})
 
 
 @table_space.route("/<string:table_name>")
@@ -122,6 +122,6 @@ class Tabledata(Resource):
     @api.doc(responses={200: 'OK'})
     @api.expect(tabledata_delete_model)
     def delete(self, table_name):
-        condition = request.json["condition"]
-        status, message, data, error = delete_tabledata(table_name, condition, mysql)
+        column = request.json["column"]
+        status, message, data, error = delete_tabledata(table_name, column, mysql)
         return {"message": message}, status
