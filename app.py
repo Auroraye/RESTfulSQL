@@ -1,7 +1,7 @@
 import json
 from flask_mysqldb import MySQL
 
-from controller.MetaController import organize_return
+from controller.MetaController import *
 from controller.MetadataController import get_metadata
 from util.QueryHelper import *
 from flask import Flask, request, jsonify
@@ -85,7 +85,7 @@ class Metadata(Resource):
     """
     def get(self, table_name):
         status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
-        return organize_return(status, message, data, error)
+        return organize_return_with_data(status, message, data, error)
 
     @api.expect(column_model)
     def post(self, table_name):
