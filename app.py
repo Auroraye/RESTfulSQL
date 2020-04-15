@@ -3,6 +3,7 @@ from flask_mysqldb import MySQL
 from util.QueryHelper import *
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
+from controller.MetadataController import *
 from controller.PredictableExeption import PredictableException
 from controller.TableController import create_table, delete_table
 
@@ -24,6 +25,7 @@ flask_app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD')
 flask_app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 
 mysql = MySQL(flask_app)
+current_database = ""
 
 table_space = api.namespace('table', description='Manage tables')
 metadata_space = api.namespace('metadata', description='Manage metadata')
@@ -68,43 +70,13 @@ class Table(Resource):
         return {'message': message}, status
 
 
-@metadata_space.route('/<table_name>')
-class MainClass(Resource):
+@metadata_space.route("/<table_name>")
+class Metadata(Resource):
     '''
     if input is 'TABLE', output all tables in the db
     if input is 'VIEW', output all views in the db
     if input is <table_name>, output metadata for that table
     '''
-
     def get(self, table_name):
-        resultlist = []
-        if table_name == 'TABLE':
-            result, error = db_query(
-                mysql, 'SHOW FULL TABLES IN company;', None)
-            for item in result:
-                temp = {'Tables': item[0],
-                        'Table_type': item[1]
-                        }
-                resultlist.append(temp)
-        elif table_name == 'VIEW':
-            result, error = db_query(
-                mysql, 'SHOW FULL TABLES IN company WHERE TABLE_TYPE LIKE \'VIEW\';', None)
-            for item in result:
-                temp = {'Views': item[0],
-                        'Table_type': item[1]
-                        }
-                resultlist.append(temp)
-        else:
-            result, error = db_query(
-                mysql, 'DESCRIBE {};'.format(table_name), None)
-            for item in result:
-                # temp = jsonify(Field=item[0], Type=item[1], Null=item[2], Key=item[3])
-                temp = {'Field': item[0],
-                        'Type': item[1],
-                        'Null': item[2],
-                        'Key': item[3]
-                        }
-                resultlist.append(temp)
-        resultTuple = tuple(resultlist)
-        return jsonify(resultTuple)
-        # return jsonify([user for user in result])
+        status, message, data, error = get_metadata(table_name, mysql, current_database)
+        return {"message": message, "data": data}, status
