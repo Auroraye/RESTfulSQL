@@ -29,6 +29,7 @@ class PredictableInvalidArgumentException(PredictableException):
             return text
         elif self.massage == "5":
             text = "There is a value that is undefined for the corresponding type in the 'values' field."
+            return text
         elif self.massage == "6":
             text = "Only one table can be updated each time, please remove other tables from the 'table' field."
             return text
@@ -64,9 +65,9 @@ class PredictableConflictOperationException(PredictableException):
         info = self.massage.split(",")
         text = "There is a conflict/overlapped operation on '" + info[0] + "' " + info[1] + "."
         return text
-        
+
+
 class PredictableColumnNumberMismatchException(PredictableException):
     def handle_me(self):
         text = "The number of input values and input columns are mismatched."
         return text
-

@@ -114,7 +114,7 @@ class Tabledata(Resource):
             return {"message": message}, status
         except PredictableException as e:
             table_space.abort(
-                500, e.__doc__, status=e.handle_me(), statusCode="300")
+                500, e.__doc__, status=e.hangdle_me(), statusCode="300")
         except Exception as e:
             table_space.abort(
                 400, e.__doc__, status="Could not update information", statusCode="400")
