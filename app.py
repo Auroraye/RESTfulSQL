@@ -22,8 +22,8 @@ api = Api(app=flask_app,
 # change accordingly
 flask_app.config['MYSQL_HOST'] = 'localhost'
 flask_app.config['MYSQL_USER'] = 'root'
-flask_app.config['MYSQL_PASSWORD'] =
-flask_app.config['MYSQL_DB'] =
+flask_app.config['MYSQL_PASSWORD'] = ''
+flask_app.config['MYSQL_DB'] = ''
 
 
 mysql = MySQL(flask_app)

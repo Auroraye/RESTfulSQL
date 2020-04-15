@@ -1,5 +1,6 @@
 from controller.PredictableExeption import *
 
+
 # This function create a table with unique key(s)
 def create_table(table, column, unique, mysql):
     # Create error variable, after each mysql query, check if it is null.
