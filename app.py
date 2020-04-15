@@ -1,12 +1,12 @@
 import json
 from flask_mysqldb import MySQL
 
-from controller.MetaController import organize_return
+from controller.MetaController import *
 from controller.MetadataController import get_metadata
 from util.QueryHelper import *
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
-from controller.MetadataController import *
+# from controller.MetadataController import *
 from controller.PredictableExeption import PredictableException
 from controller.TableController import create_table, delete_table
 from controller.TabledataController import *
@@ -20,8 +20,8 @@ load_dotenv()
 flask_app = Flask(__name__)
 api = Api(app=flask_app,
           version="1.0",
-          title="Name Recorder",
-          description="Manage names of various users of the application")
+          title="RESTfulSQL API",
+          description="A Restful API Wrapper for MYSQL")
 
 flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
 flask_app.config["MYSQL_PORT"] = 3306
@@ -86,7 +86,7 @@ class Metadata(Resource):
 
     def get(self, table_name):
         status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
-        return organize_return(status, message, data, error)
+        return organize_return_with_data(status, message, data, error)
 
     @api.expect(column_model)
     def post(self, table_name):
