@@ -1,12 +1,9 @@
-from Controller.PredictableExeption import *
+from controller.PredictableExeption import *
+from util.QueryHelper import db_query
 
 
 # This function create a table with unique key(s)
 def create_table(table, column, unique, mysql):
-    # Create error variable, after each mysql query, check if it is null.
-    # If not null, then return error
-    error = None
-
     # Try to parse the table variable in order to detect exception.
     tables = table.split(",")
     if len(tables) == 0:
@@ -64,13 +61,16 @@ def create_table(table, column, unique, mysql):
                 # If there is an empty key, then skip it.
                 unique = unique[1:]
             else:
-                # Cut the single key off from the tring and push it into the array.
-                single_key = unique[0:comma]
-                uniques.append(single_key)
+                # Cut the single key off from the string and push it into the array.
+
                 if comma == -1:
+                    single_key = unique
+                    uniques.append(single_key)
                     # If this is the last key, then empty the string.
                     unique = ""
                 else:
+                    single_key = unique[0:comma]
+                    uniques.append(single_key)
                     unique = unique[comma+1:]
     # Once all the unique keys are parsed, we need to check if all the key are defined in columns.
     i = 0
@@ -122,18 +122,16 @@ def create_table(table, column, unique, mysql):
             raise e
 
     con.commit()
-    return {"success": "Table " + table + " is created."}
-
-def delete_table(table, mysql):
-    # SQL Operation
-    # TODO
-    
+    con.autocommit = True
+    cur.close()
     status = 200
-    data = ""
-    message = 'Table ' + table + ' is deleted'
-    error = ""
-
-    return status, message, data, error
+    message = "Table " + table + " is created."
+    return status, message, None, None
 
 
+def delete_table(table_name, mysql):
+    status = 200
+    message = "Table {} is deleted".format(table_name)
+    result, error = db_query(mysql, "DROP TABLE " + table_name)
 
+    return status, message, None, error
