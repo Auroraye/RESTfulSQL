@@ -1,11 +1,10 @@
 from Controller.PredictableExeption import PredictableException
 from Controller.TableController import create_table
-from flask_mysqldb import MySQL
 from Unitility.MySQLInfo import *
 from flask import Flask, request, jsonify
-from flask_restplus import Api, Resource, fields, reqparse
-import json
-
+from flask_mysqldb import MySQL
+from flask_restplus import Api, Resource, fields
+from Unitility.MySQLInfo import password, host, port, user, database
 
 flask_app = Flask(__name__)
 app = Api(app=flask_app,
@@ -18,13 +17,12 @@ flask_app.config['MYSQL_USER'] = user
 flask_app.config['MYSQL_PASSWORD'] = password
 flask_app.config['MYSQL_DB'] = database
 mysql = MySQL()
-mysql.init_app(app)
+mysql.init_app(flask_app)
 
 name_space = app.namespace('names', description='Manage names')
 table_space = app.namespace('Table', description='Manage tables')
 metadata_space = app.namespace('Metadata', description='Manage metadata')
 tabledata_space = app.namespace('Table/Data', description='Manage data records')
-metadata_space = app.namespace('Metadata', description='Manage metadata')
 
 
 model = app.model('Name Model',
@@ -99,7 +97,6 @@ class TableClass(Resource):
         except Exception as e:
             table_space.abort(
                 400, e.__doc__, status="Could not save information", statusCode="400")
-        return {'result' : 'Language added'}, 201
 
 
 @metadata_space.route("/<table_name>")
