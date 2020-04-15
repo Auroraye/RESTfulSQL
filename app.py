@@ -1,15 +1,15 @@
 import json
 from flask_mysqldb import MySQL
 
-from Controller.MetaController import organize_return
-from Controller.MetadataController import get_metadata
+from controller.MetaController import organize_return
+from controller.MetadataController import get_metadata
 from util.QueryHelper import *
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
-from Controller.MetadataController import *
-from Controller.PredictableExeption import PredictableException
-from Controller.TableController import create_table, delete_table
-from Controller.TabledataController import *
+from controller.MetadataController import *
+from controller.PredictableExeption import PredictableException
+from controller.TableController import create_table, delete_table
+from controller.TabledataController import *
 
 # Import env variable
 import os
@@ -23,7 +23,7 @@ api = Api(app=flask_app,
           description="Manage names of various users of the application")
 
 flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
-flask_app.config["MYSQL_PORT"] = int(os.getenv("MYSQL_PORT"))
+flask_app.config["MYSQL_PORT"] = 3306
 flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
 flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
 flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
@@ -71,7 +71,7 @@ class TableList(Resource):
         return organize_return(status, message, data, error)
 
 
-column_model = api.models("Column Model",
+column_model = api.model("Column Model",
                           {"columns": fields.String(required=True),
                            "types": fields.String(required=True),
                            "values": fields.String(required=True)})
