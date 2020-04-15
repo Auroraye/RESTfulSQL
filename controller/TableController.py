@@ -4,10 +4,6 @@ from util.QueryHelper import db_query
 
 # This function create a table with unique key(s)
 def create_table(table, column, unique, mysql):
-    # Create error variable, after each mysql query, check if it is null.
-    # If not null, then return error
-    error = None
-
     # Try to parse the table variable in order to detect exception.
     tables = table.split(",")
     if len(tables) == 0:
@@ -123,7 +119,12 @@ def create_table(table, column, unique, mysql):
             raise e
 
     con.commit()
-    return {"success": "Table " + table + " is created."}
+    con.autocommit = True
+    cur.close()
+    status = 200
+    message = "Table " + table + " is created."
+    return status, message, None, None
+
 
 def delete_table(table_name, mysql):
     status = 200
@@ -131,6 +132,3 @@ def delete_table(table_name, mysql):
     result, error = db_query(mysql, "DROP TABLE " + table_name)
 
     return status, message, error
-
-
-

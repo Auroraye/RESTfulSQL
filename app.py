@@ -1,11 +1,13 @@
 import json
 from flask_mysqldb import MySQL
+
+from Controller.MetadataController import get_metadata
 from util.QueryHelper import *
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
-from controller.MetadataController import *
-from controller.PredictableExeption import PredictableException
-from controller.TableController import create_table, delete_table
+from Controller.MetadataController import *
+from Controller.PredictableExeption import PredictableException
+from Controller.TableController import create_table, delete_table
 
 # Import env variable
 import os
@@ -33,23 +35,21 @@ tabledata_space = api.namespace(
 
 
 table_model = api.model("Table Model",
-                        {"name": fields.String(required=True,
-                                               description="Name of the person",
-                                               help="Name cannot be blank."),
-                         "columns": fields.String(required=True),
+                        {"columns": fields.String(required=True),
                          "uniques": fields.String()})
 
 
-@table_space.route("/")
+@table_space.route("/<string:table_name>")
 class TableList(Resource):
     @api.doc(responses={200: "OK", 400: "Invalid Argument", 500: "Mapping Key Error"})
     @api.expect(table_model)
-    def post(self):
+    def post(self, table_name):
         try:
-            table = request.json["name"]
+            table = table_name
             column = request.json["columns"]
             unique = request.json["uniques"]
-            return create_table(table, column, unique, mysql)
+            status, message, data, error = create_table(table, column, unique, mysql)
+            return {"message": message}, status
         except KeyError as e:
             table_space.abort(
                 500, e.__doc__, status="Could not save information", statusCode="500")
@@ -59,11 +59,7 @@ class TableList(Resource):
         except Exception as e:
             table_space.abort(
                 400, e.__doc__, status="Could not save information", statusCode="400")
-        return {"result": "Language added"}, 201
 
-
-@table_space.route("/<string:table_name>")
-class Table(Resource):
     def delete(self, table_name):
         status, message, error = delete_table(table_name, mysql)
         if (error):
