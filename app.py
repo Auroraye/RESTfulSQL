@@ -1,93 +1,55 @@
-from Controller.PredictableExeption import PredictableException
-from Controller.TableController import create_table
-from Unitility.MySQLInfo import *
-from flask import Flask, request, jsonify
+import json
 from flask_mysqldb import MySQL
-from flask_restplus import Api, Resource, fields
-from Unitility.MySQLInfo import password, host, port, user, database
+
+from Controller.MetadataController import get_metadata
+from util.QueryHelper import *
+from flask import Flask, request, jsonify
+from flask_restplus import Api, Resource, fields, reqparse
+from Controller.MetadataController import *
+from Controller.PredictableExeption import PredictableException
+from Controller.TableController import create_table, delete_table
+
+# Import env variable
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 flask_app = Flask(__name__)
-app = Api(app=flask_app,
+api = Api(app=flask_app,
           version="1.0",
           title="Name Recorder",
           description="Manage names of various users of the application")
-flask_app.config['MYSQL_HOST'] = host
-flask_app.config['MYSQL_PORT'] = port
-flask_app.config['MYSQL_USER'] = user
-flask_app.config['MYSQL_PASSWORD'] = password
-flask_app.config['MYSQL_DB'] = database
-mysql = MySQL()
-mysql.init_app(flask_app)
 
-name_space = app.namespace('names', description='Manage names')
-table_space = app.namespace('Table', description='Manage tables')
-metadata_space = app.namespace('Metadata', description='Manage metadata')
-tabledata_space = app.namespace('Table/Data', description='Manage data records')
+flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
+flask_app.config["MYSQL_PORT"] = int(os.getenv("MYSQL_PORT"))
+flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
+flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
+flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
 
+mysql = MySQL(flask_app)
 
-model = app.model('Name Model',
-                  {'name': fields.String(required=True,
-                                         description="Name of the person",
-                                         help="Name cannot be blank.")})
-
-list_of_names = {}
+table_space = api.namespace("table", description="Manage tables")
+metadata_space = api.namespace("metadata", description="Manage metadata")
+tabledata_space = api.namespace(
+    "table/data", description="Manage data records")
 
 
-@name_space.route("/<int:id>")
-class MainClass(Resource):
+table_model = api.model("Table Model",
+                        {"columns": fields.String(required=True),
+                         "uniques": fields.String()})
 
-    @app.doc(responses={200: 'OK', 400: 'Invalid Argument', 500: 'Mapping Key Error'},
-             params={'id': 'Specify the Id associated with the person'})
-    def get(self, id):
+
+@table_space.route("/<string:table_name>")
+class TableList(Resource):
+    @api.doc(responses={200: "OK", 400: "Invalid Argument", 500: "Mapping Key Error"})
+    @api.expect(table_model)
+    def post(self, table_name):
         try:
-            name = list_of_names[id]
-            return {
-                "status": "Person retrieved",
-                "name": list_of_names[id]
-            }
-        except KeyError as e:
-            name_space.abort(
-                500, e.__doc__, status="Could not retrieve information", statusCode="500")
-        except Exception as e:
-            name_space.abort(
-                400, e.__doc__, status="Could not retrieve information", statusCode="400")
-
-    @app.doc(responses={200: 'OK', 400: 'Invalid Argument', 500: 'Mapping Key Error'},
-             params={'id': 'Specify the Id associated with the person'})
-    @app.expect(model)
-    def post(self, id):
-        try:
-            list_of_names[id] = request.json['name']
-            return {
-                "status": "New person added",
-                "name": list_of_names[id]
-            }
-        except KeyError as e:
-            name_space.abort(
-                500, e.__doc__, status="Could not save information", statusCode="500")
-        except Exception as e:
-            name_space.abort(
-                400, e.__doc__, status="Could not save information", statusCode="400")
-
-
-table_model = app.model('Table Model',
-                        {'name': fields.String(required=True,
-                                                description="Name of the person",
-                                                help="Name cannot be blank."),
-                         'columns': fields.String(required=True),
-                         'uniques': fields.String()})
-
-
-@table_space.route("/")
-class TableClass(Resource):
-    @app.doc(responses={200: 'OK', 400: 'Invalid Argument', 500: 'Mapping Key Error'})
-    @app.expect(table_model)
-    def post(self):
-        try:
-            table = request.json['name']
-            column = request.json['columns']
-            unique = request.json['uniques']
-            return create_table(table, column, unique, mysql)
+            table = table_name
+            column = request.json["columns"]
+            unique = request.json["uniques"]
+            status, message, data, error = create_table(table, column, unique, mysql)
+            return {"message": message}, status
         except KeyError as e:
             table_space.abort(
                 500, e.__doc__, status="Could not save information", statusCode="500")
@@ -98,40 +60,18 @@ class TableClass(Resource):
             table_space.abort(
                 400, e.__doc__, status="Could not save information", statusCode="400")
 
+    def delete(self, table_name):
+        status, message, data, error = delete_table(table_name, mysql)
+        return {"message": message}, status
+
 
 @metadata_space.route("/<table_name>")
-class MainClass(Resource):
+class Metadata(Resource):
     '''
     if input is 'TABLE', output all tables in the db
     if input is 'VIEW', output all views in the db
     if input is <table_name>, output metadata for that table
     '''
     def get(self, table_name):
-        resultlist = []
-        if table_name == 'TABLE':
-            result, error = db_query(mysql, 'SHOW FULL TABLES IN company;', None)
-            for item in result:
-                temp = {"Tables": item[0],
-                        "Table_type": item[1]
-                        }
-                resultlist.append(temp)
-        elif table_name == 'VIEW':
-            result, error = db_query(mysql, 'SHOW FULL TABLES IN company WHERE TABLE_TYPE LIKE \'VIEW\';', None)
-            for item in result:
-                temp = {"Views": item[0],
-                        "Table_type": item[1]
-                        }
-                resultlist.append(temp)
-        else:
-            result, error = db_query(mysql, 'DESCRIBE {};'.format(table_name), None)
-            for item in result:
-                # temp = jsonify(Field=item[0], Type=item[1], Null=item[2], Key=item[3])
-                temp = {"Field": item[0],
-                        "Type": item[1],
-                        "Null": item[2],
-                        "Key": item[3]
-                        }
-                resultlist.append(temp)
-        resultTuple = tuple(resultlist)
-        return jsonify(resultTuple)
-        # return jsonify([user for user in result])
+        status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
+        return {"message": message, "data": data}, status
