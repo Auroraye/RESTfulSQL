@@ -28,7 +28,7 @@ def get_metadata(table_name, mysql, current_database):
         message = "Success! Get all view info from " + current_database + "."
     else:
         result, error = db_query(
-            mysql, 'DESCRIBE {};'.format(table_name), None)
+            mysql, 'DESCRIBE `{}`;'.format(table_name), None)
         for item in result:
             # temp = jsonify(Field=item[0], Type=item[1], Null=item[2], Key=item[3])
             temp = {"Field": item[0],
