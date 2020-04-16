@@ -155,8 +155,8 @@ class UniqueKey(Resource):
     @api.expect(uniquekey_model)
     def post(self):
         table = request.json["name"]
-        key = request.json['keys']
-        name = request.json['key_names']
+        key = request.json["keys"]
+        name = request.json["key_names"]
         status, message, data, error = update_unique_key(table, key, name, mysql)
         return organize_return(status, message, data, error)
 # Here ends the metadata module

@@ -1,4 +1,7 @@
+import os
+
 from controller.PredictableExeption import *
+from util.ExtractSpecialArray import extract_unique_key
 from util.QueryHelper import db_query
 
 
@@ -173,4 +176,31 @@ def update_column(table, column, operation, value, mysql):
 
 
 def update_unique_key(table, key, name, mysql):
+    uniques = extract_unique_key(key)
+    names = name.split(",")
+
+    # The first potential error is that not all the keys have a corresponding name.
+    if len(uniques) != len(names):
+        raise PredictableNumberOfParameterNotMatchException("keys,key_names")
+
+    status, message, table_structure, error = get_metadata(table, mysql, os.getenv("MYSQL_DB"))
+    # Check the validation of each key.
+    for k in uniques:
+        try:
+            comma = k.index(",")
+            ks = k.split(",")
+            for a_k in ks:
+                if check_exist_from_json(ks,table_structure) is False:
+                    raise PredictableUnknownKeyException(a_k)
+        except PredictableException as e:
+            raise e
+
+
     pass
+
+
+def check_exist_from_json(key, data):
+    for row in data:
+        if row["Field"] is key:
+            return True
+    return False

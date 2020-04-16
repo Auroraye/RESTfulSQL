@@ -1,4 +1,5 @@
 from controller.PredictableExeption import *
+from util.ExtractSpecialArray import extract_unique_key
 from util.QueryHelper import db_query
 
 
@@ -21,57 +22,8 @@ def create_table(table, column, unique, mysql):
     # Parse the list of unique keys from string into array.
     # Because a unique key can be composite key with a form of '(c1,c2)',
     # so it is impossible to use the same technique as what we have done for columns.
-    uniques = []
-    while len(unique) > 0:
-        a = 0
-        # Each time, there are two cases:
-        # 1. The next key is a single key;
-        # 2. The next key is a composite key.
-        # We need to handle these two cases separately.
-        comma = -1
-        prent = -1
-        try:
-            comma = unique.index(',')
-        except ValueError as v:
-            comma = -1
-        except Exception as e:
-            raise e
-        try:
-            prent = unique.index('(')
-        except ValueError as v:
-            prent = -1
-        except Exception as e:
-            raise e
+    uniques = extract_unique_key(unique)
 
-        # When the next key is a composite key...
-        if comma > prent >= 0:
-            try:
-                end = unique.index(')')
-            except ValueError as v:
-                raise PredictableInvalidArgumentException("3")
-            except Exception as e:
-                raise e
-            prent += 1
-            composite_key = unique[prent: end]
-            uniques.append(composite_key)
-            unique = uniques[end+1:]
-        # When the next key is a single key...
-        else:
-            if comma == 0:
-                # If there is an empty key, then skip it.
-                unique = unique[1:]
-            else:
-                # Cut the single key off from the string and push it into the array.
-
-                if comma == -1:
-                    single_key = unique
-                    uniques.append(single_key)
-                    # If this is the last key, then empty the string.
-                    unique = ""
-                else:
-                    single_key = unique[0:comma]
-                    uniques.append(single_key)
-                    unique = unique[comma+1:]
     # Once all the unique keys are parsed, we need to check if all the key are defined in columns.
     i = 0
     while i < len(uniques):
