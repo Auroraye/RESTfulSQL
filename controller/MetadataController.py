@@ -247,6 +247,7 @@ def get_unique_key(table, mysql):
     try:
         cur.execute(command)
         result = cur.fetchall()
+        print(result)
         result = result[0][1]
         cur.close()
     except Exception as e:
@@ -340,5 +341,69 @@ def delete_foreign_key(table, name, mysql):
     pass
 
 
-def get_foreign_key(table_name, mysql):
-    pass
+def get_foreign_key(table, mysql):
+    check_table_field(table)
+
+    con = mysql.connection
+    cur = con.cursor()
+
+    # Check if the table is in the database
+    command = "SELECT * FROM `" + table + "`;"
+    try:
+        cur.execute(command)
+    except Exception as e:
+        cur.close()
+        raise PredictableTableNotFoundException
+
+    command = "SHOW CREATE TABLE `" + table + "`;"
+    result = ""
+    try:
+        cur.execute(command)
+        result = cur.fetchall()
+        print(result)
+        result = result[0][1]
+        cur.close()
+    except Exception as e:
+        raise e
+    data = []
+    stop = False
+    while not stop:
+        try:
+            ind = -1
+            # Check if there is more unique key.
+            try:
+                ind = result.index('CONSTRAINT')
+            except Exception as e:
+                stop = True
+            if ind == -1:
+                continue
+
+            # Get the key name.
+            b = result.index("`", ind + 1)
+            e = result.index("`", b + 1)
+            key_name = result[b + 1: e]
+
+            # Get what column is in this key.
+            b = result.index("(", e + 1)
+            e = result.index(")", b + 1)
+            col = result[b + 2: e-1]
+
+            # Get the target.
+            b = result.index("REFERENCES", e + 1)
+            b = result.index("`", b + 1)
+            e = result.index("`", b + 1)
+            t_table = result[b + 1: e]
+            b = result.index("`", e + 1)
+            e = result.index("`", b + 1)
+            t_column = result[b + 1: e]
+
+            # Pack up this key information.
+            final = {"key_name": key_name, "column": col, "target_table": t_table, "target_column": t_column}
+            data.append(final)
+
+            # Cut off the rest of the result
+            result = result[e + 1:]
+        except Exception as e:
+            raise e
+    status = 200
+    return status, None, data, None
