@@ -247,6 +247,50 @@ def get_unique_key(table, mysql):
         cur.close()
         raise PredictableTableNotFoundException
 
+    command = "SHOW CREATE TABLE `" + table + "`;"
+    result = ""
+    try:
+        cur.execute(command)
+        result = cur.fetchall()
+        result = result[0]
+    except Exception as e:
+        raise e
+    data = []
+    stop = False
+    while not stop:
+        try:
+            ind = -1
+            # Check if there is more unique key.
+            try:
+                ind = result.index("UNIQUE KEY")
+            except Exception as e:
+                stop = True
+            if ind == -1:
+                continue
+
+            # Get the key name.
+            b = result.index("`", ind + 1)
+            e = result.index("`", b + 1)
+            key_name = result[b: e]
+
+            # Get what columns are in this key.
+            b = result.index("(", e + 1)
+            e = result.index(")", b + 1)
+            cols = result[b: e]
+            columns = cols.split(",")
+            i = 0
+            while i < len(columns):
+                columns[i] = columns[i].strip('`')
+
+            # Pack up this key information.
+            final = {"key_name": key_name, "columns": columns}
+            data.append(final)
+
+            # Cut off the rest of the result
+            result = result[e+1:]
+        except Exception as e:
+            raise e
+
 
     pass
 
