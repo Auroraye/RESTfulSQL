@@ -114,7 +114,7 @@ class TabledataList(Resource):
             value = request.json["values"]
             conditions = request.json["conditions"]
             status, message, data, error = update_tabledata(table, column, value, conditions, mysql)
-            return {"message": message}, status
+            return organize_return_with_data(status, message, data, error)
         except PredictableException as e:
             table_space.abort(
                 500, e.__doc__, status=e.hangdle_me(), statusCode="300")
@@ -130,4 +130,4 @@ class Tabledata(Resource):
     def delete(self, table_name):
         condition = request.json["condition"]
         status, message, data, error = delete_tabledata(table_name, condition, mysql)
-        return {"message": message}, status
+        return organize_return_with_data(status, message, data, error)
