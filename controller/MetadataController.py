@@ -334,6 +334,21 @@ def delete_unique_key(table, name, mysql):
 
 
 def post_foreign_key(table, key, target, name, mysql):
+    check_table_field(table)
+
+    keys = key.split(",")
+    targets = target.split(",")
+    names = name.split(",")
+
+    # Check the length of there three fields.
+    if len(keys) != len(targets):
+        raise PredictableNumberOfParameterNotMatchException("keys,targets")
+    if len(keys) != len(names):
+        raise PredictableNumberOfParameterNotMatchException("keys,key_names")
+    if len(targets) != len(names):
+        raise PredictableNumberOfParameterNotMatchException("targets,key_names")
+
+
     pass
 
 
