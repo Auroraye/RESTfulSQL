@@ -144,9 +144,12 @@ class Metadata(Resource):
         return organize_return_with_data(status, message, data, error)
 
 
-uniquekey_model = api.model("Unique Key Model",
+uniquekey_model = api.model("Unique Key Model - Post",
                             {"name": fields.String(required=True),
                              "keys": fields.String(required=True),
+                             "key_names": fields.String(required=True)})
+key_delete = api.model("Unique Key Model - Delete",
+                            {"name": fields.String(required=True),
                              "key_names": fields.String(required=True)})
 
 
@@ -157,6 +160,53 @@ class UniqueKey(Resource):
         table = request.json["name"]
         key = request.json["keys"]
         name = request.json["key_names"]
-        status, message, data, error = update_unique_key(table, key, name, mysql)
+        status, message, data, error = post_unique_key(table, key, name, mysql)
         return organize_return(status, message, data, error)
+
+    @api.expect(key_delete)
+    def delete(self):
+        table = request.json["name"]
+        name = request.json["key_names"]
+        status, message, data, error = delete_unique_key(table, name, mysql)
+        return organize_return(status, message, data, error)
+
+
+@uniquekey_space.route("/<string:table_name>")
+class UniqueKeyList(Resource):
+    def get(self, table_name):
+        status, message, data, error = get_unique_key(table_name, mysql)
+        return organize_return(status, message, data, error)
+
+
+foreignkey_model = api.model("Unique Key Model",
+                            {"name": fields.String(required=True),
+                             "keys": fields.String(required=True),
+                             "targets": fields.String(required=True),
+                             "key_names": fields.String(required=True)})
+
+
+@foreignkey_space.route("")
+class ForeignKey(Resource):
+    @api.expect(foreignkey_model)
+    def post(self):
+        table = request.json["name"]
+        key = request.json["keys"]
+        target = request.json["targets"]
+        name = request.json["key_names"]
+        status, message, data, error = post_foreign_key(table, key, target, name, mysql)
+        return organize_return(status, message, data, error)
+
+    @api.expect(key_delete)
+    def delete(self):
+        table = request.json["name"]
+        name = request.json["key_names"]
+        status, message, data, error = delete_foreign_key(table, name, mysql)
+        return organize_return(status, message, data, error)
+
+@foreignkey_space.route("/<string:table_name>")
+class UniqueKeyList(Resource):
+    def get(self, table_name):
+        status, message, data, error = get_foreign_key(table_name, mysql)
+        return organize_return(status, message, data, error)
+
 # Here ends the metadata module

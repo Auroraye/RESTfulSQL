@@ -175,7 +175,7 @@ def update_column(table, column, operation, value, mysql):
     return status, message, None, None
 
 
-def update_unique_key(table, key, name, mysql):
+def post_unique_key(table, key, name, mysql):
     uniques = extract_unique_key(key)
     names = name.split(",")
 
@@ -227,3 +227,21 @@ def update_unique_key(table, key, name, mysql):
     return status, message, None, None
 
 
+def get_unique_key(table, mysql):
+    pass
+
+
+def delete_unique_key(table, name, mysql):
+    pass
+
+
+def post_foreign_key(table, key, target, name, mysql):
+    pass
+
+
+def delete_foreign_key(table, name, mysql):
+    pass
+
+
+def get_foreign_key(table_name, mysql):
+    pass
