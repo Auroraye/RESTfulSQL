@@ -181,7 +181,7 @@ class UniqueKeyList(Resource):
 foreignkey_model = api.model("Unique Key Model",
                             {"name": fields.String(required=True),
                              "keys": fields.String(required=True),
-                             "targets": fields.String(required=True),
+                             "targets": fields.String(required=True, description="Format is 'TableName.ColumnName'."),
                              "key_names": fields.String(required=True)})
 
 
