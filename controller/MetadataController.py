@@ -348,7 +348,25 @@ def post_foreign_key(table, key, target, name, mysql):
     if len(targets) != len(names):
         raise PredictableNumberOfParameterNotMatchException("targets,key_names")
 
-
+    # Check the duplication of any of the three fields.
+    tem = []
+    for k in keys:
+        if k in tem:
+            raise PredictableDuplicateKeyException(k)
+        else:
+            tem.append(k)
+    tem = []
+    for k in targets:
+        if k in tem:
+            raise PredictableDuplicateKeyException(k)
+        else:
+            tem.append(k)
+    tem = []
+    for n in names:
+        if n in tem:
+            raise PredictableDuplicateConstraintNameException(n)
+        else:
+            tem.append(n)
     pass
 
 
