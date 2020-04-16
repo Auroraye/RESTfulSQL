@@ -294,6 +294,8 @@ def get_unique_key(table, mysql):
 
 def delete_unique_key(table, name, mysql):
     names = name.split(",")
+    if len(names) == 0:
+        raise PredictableInvalidArgumentException("7")
 
     # Check if duplication in name field
     tem = []
@@ -310,7 +312,25 @@ def delete_unique_key(table, name, mysql):
             raise PredictableUnknownKeyException(n)
 
     # Start to communicate with the database.
+    con = mysql.connection
+    cur = con.cursor()
+    con.autocommit = False
 
+    for n in names:
+        command = "ALTER TABLE `" + table + "` DROP INDEX `" + n + "`;"
+        try:
+            cur.execute(command)
+        except Exception as e:
+            con.rollback()
+            cur.close()
+            raise e
+
+    status = 200
+    data = ""
+    message = "Keys are deleted."
+    error = ""
+
+    return status, message, data, error
 
 
 def post_foreign_key(table, key, target, name, mysql):

@@ -33,6 +33,9 @@ class PredictableInvalidArgumentException(PredictableException):
         elif self.massage == "6":
             text = "Only one table can be updated each time, please remove other tables from the 'table' field."
             return text
+        elif self.massage == "7":
+            text = "Please define at least one key to delete."
+            return text
         else:
             return self.massage
 
