@@ -79,3 +79,15 @@ class PredictableTypeNotMatchException(PredictableException):
         text = "The value does not match the supposed type. Suppose to have '" + fields[0] + "' typed value,"
         text += "but get value '" + fields[1] + "'."
         return text
+
+
+class PredictableDuplicateKeyException(PredictableException):
+    def handle_me(self):
+        text = "There are at least two identical keys in the 'keys' filed, and it is '" + self.massage + "'."
+        return text
+
+
+class PredictableDuplicateConstraintNameException(PredictableException):
+    def handle_me(self):
+        text = "There are at least two identical key name in the 'key_names' filed, and it is '" + self.massage + "'."
+        return text

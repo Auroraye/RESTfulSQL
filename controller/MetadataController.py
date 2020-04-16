@@ -1,7 +1,7 @@
 import os
 
 from controller.PredictableExeption import *
-from util.ExtractSpecialArray import extract_unique_key
+from util.ExtractSpecialArray import *
 from util.QueryHelper import db_query
 
 
@@ -184,23 +184,46 @@ def update_unique_key(table, key, name, mysql):
         raise PredictableNumberOfParameterNotMatchException("keys,key_names")
 
     status, message, table_structure, error = get_metadata(table, mysql, os.getenv("MYSQL_DB"))
+
     # Check the validation of each key.
     for k in uniques:
+        ks = k.split(",")
+        for a_k in ks:
+            if check_exist_from_json(a_k, table_structure) is False:
+                raise PredictableUnknownKeyException(a_k)
+
+    # Check the duplication of key and key name
+    tem = []
+    for k in uniques:
+        if k in tem:
+            raise PredictableDuplicateKeyException(k)
+        else:
+            tem.append(k)
+    tem = []
+    for n in names:
+        if n in tem:
+            raise PredictableDuplicateConstraintNameException(n)
+        else:
+            tem.append(n)
+
+    con = mysql.connection
+    cur = con.cursor()
+    con.autocommit = False
+
+    i = 0
+    while i < len(uniques):
+        command = "ALTER TABLE `" + table + "` ADD CONSTRAINT `" + names[i] + "` "
+        command += "UNIQUE (" + uniques[i] + ");"
         try:
-            comma = k.index(",")
-            ks = k.split(",")
-            for a_k in ks:
-                if check_exist_from_json(ks,table_structure) is False:
-                    raise PredictableUnknownKeyException(a_k)
-        except PredictableException as e:
+            cur.execute(command)
+        except Exception as e:
+            con.rollback()
+            cur.close()
             raise e
+        i += 1
+
+    status = 200
+    message = "Table " + table + " has been added the specified keys."
+    return status, message, None, None
 
 
-    pass
-
-
-def check_exist_from_json(key, data):
-    for row in data:
-        if row["Field"] is key:
-            return True
-    return False

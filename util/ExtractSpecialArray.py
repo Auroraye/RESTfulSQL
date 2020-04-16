@@ -55,3 +55,10 @@ def extract_unique_key(u):
                     uniques.append(single_key)
                     unique = unique[comma + 1:]
     return uniques
+
+
+def check_exist_from_json(key, data):
+    for row in data:
+        if row["Field"] is key:
+            return True
+    return False
