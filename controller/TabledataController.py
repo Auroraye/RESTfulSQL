@@ -1,6 +1,7 @@
 from util.QueryHelper import db_query
 from controller.PredictableExeption import *
 
+
 def update_tabledata(table, column, value, condition, mysql):
     # Try to parse the table variable in order to detect exception.
     tables = table.split(",")
@@ -57,6 +58,7 @@ def update_tabledata(table, column, value, condition, mysql):
     status = 200
     message = "Table " + table + " is updated."
     return status, message, None, None
+
 
 def delete_tabledata(table, condition, mysql):
     command = "DELETE FROM `" + table +"` "

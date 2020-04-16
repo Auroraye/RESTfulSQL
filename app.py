@@ -96,6 +96,7 @@ class Metadata(Resource):
         status, message, data, error = update_column(name, column, kind, value, mysql)
         return organize_return(status, message, data, error)
 
+
 @tabledata_space.route("/<table_name>")
 class Tabledata(Resource):
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
