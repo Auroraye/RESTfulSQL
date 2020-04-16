@@ -15,6 +15,7 @@ from controller.TabledataController import *
 # Import env variable
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 flask_app = Flask(__name__)
@@ -32,25 +33,24 @@ flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
 mysql = MySQL(flask_app)
 
 table_space = api.namespace("table", description="Manage tables")
-metadata_space = api.namespace("metadata", description="Manage metadata")
 tabledata_space = api.namespace("table/data", description="Manage data records")
+metadata_space = api.namespace("metadata", description="Manage metadata")
+uniquekey_space = api.namespace("metadata/uniquekey", description="Manage unique key")
+foreignkey_space = api.namespace("metadata/foreignkey", description="Manage foreign key")
 
 
+# Here starts the table module.
 table_model = api.model("Table Model",
-                        {"columns": fields.String(required=True),
+                        {"name": fields.String(required=True),
+                         "columns": fields.String(required=True),
                          "uniques": fields.String()})
-
-tabledata_model = api.model("Tabledata Model",
-                        {"columns": fields.String(required=True),
-                         "values": fields.String(required=True),
-                         "conditions": fields.String()})
 
 
 @table_space.route("")
 class TableList(Resource):
     @api.doc(responses={200: "OK", 400: "Invalid Argument", 500: "Mapping Key Error"})
     @api.expect(table_model)
-    def post(self, table_name):
+    def post(self):
         try:
             table = request.json["name"]
             column = request.json["columns"]
@@ -71,18 +71,58 @@ class Table(Resource):
         if (error):
             table_space.abort(500, message)
         return organize_return(status, message, data, error)
+# Here ends the table module
 
 
+# Here starts the table data module
+tabledata_model = api.model("Tabledata Model",
+                            {"name": fields.String(required=True),
+                             "columns": fields.String(required=True),
+                             "values": fields.String(required=True),
+                             "conditions": fields.String()})
+
+
+@tabledata_space.route("")
+class TabledataList(Resource):
+    @api.doc(responses={200: "OK", 400: "Invalid Argument"})
+    @api.expect(tabledata_model)
+    def post(self):
+        try:
+            table = request.json["name"]
+            column = request.json["columns"]
+            value = request.json["values"]
+            conditions = request.json["conditions"]
+            status, message, data, error = update_tabledata(table, column, value, conditions, mysql)
+            return {"message": message}, status
+        except PredictableException as e:
+            table_space.abort(
+                500, e.__doc__, status=e.hangdle_me(), statusCode="300")
+        except Exception as e:
+            raise e
+
+
+@tabledata_space.route("/<string:table_name>")
+class Tabledata(Resource):
+    @api.doc(responses={200: 'OK'})
+    def delete(self, table_name):
+        condition = request.json["condition"]
+        status, message, data, error = delete_tabledata(table_name, condition, mysql)
+        return {"message": message}, status
+# Here ends the table data module
+
+
+# Here starts the meta data module.
 column_model = api.model("Column Model",
-                          {"columns": fields.String(required=True),
-                           "types": fields.String(required=True),
-                           "values": fields.String(required=True)})
+                         {"name": fields.String(required=True),
+                          "columns": fields.String(required=True),
+                          "types": fields.String(required=True),
+                          "values": fields.String(required=True)})
 
 
 @metadata_space.route("")
 class MetadataList(Resource):
     @api.expect(column_model)
-    def post(self, table_name):
+    def post(self):
         name = request.json["name"]
         column = request.json['columns']
         kind = request.json['types']
@@ -98,36 +138,28 @@ class Metadata(Resource):
     if input is 'VIEW', output all views in the db
     if input is <table_name>, output metadata for that table
     """
+
     def get(self, table_name):
         status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
         return organize_return_with_data(status, message, data, error)
 
 
-@tabledata_space.route("")
-class TabledataList(Resource):
-    @api.doc(responses={200: "OK", 400: "Invalid Argument"})
-    @api.expect(tabledata_model)
-    def post(self, table_name):
-        try:
-            table = request.json["name"]
-            column = request.json["columns"]
-            value = request.json["values"]
-            conditions = request.json["conditions"]
-            status, message, data, error = update_tabledata(table, column, value, conditions, mysql)
-            return {"message": message}, status
-        except PredictableException as e:
-            table_space.abort(
-                500, e.__doc__, status=e.hangdle_me(), statusCode="300")
-        except Exception as e:
-            raise e
-            table_space.abort(
-                400, e.__doc__, status="Could not update information", statusCode="400")
+uniquekey_model = api.model("Unique Key Model",
+                            {"name": fields.String(required=True),
+                             "keys": fields.String(required=True),
+                             "key_names": fields.String(required=True)})
 
 
-@tabledata_space.route("/<string:table_name>")
-class Tabledata(Resource):
-    @api.doc(responses={200: 'OK'})
-    def delete(self, table_name):
-        condition = request.json["condition"]
-        status, message, data, error = delete_tabledata(table_name, condition, mysql)
-        return {"message": message}, status
+@uniquekey_space.route("")
+class UniqueKey(Resource):
+    @api.expect(uniquekey_model)
+    def post(self):
+        table = request.json["name"]
+        key = request.json['keys']
+        name = request.json['key_names']
+        status, message, data, error = update_unique_key(table, key, name, mysql)
+        return organize_return(status, message, data, error)
+# Here ends the metadata module
+
+
+

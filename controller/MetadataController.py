@@ -170,3 +170,7 @@ def update_column(table, column, operation, value, mysql):
     status = 200
     message = "Table " + table + "'s metadata has been changed accordingly."
     return status, message, None, None
+
+
+def update_unique_key(table, key, name, mysql):
+    pass
