@@ -221,13 +221,33 @@ def post_unique_key(table, key, name, mysql):
             cur.close()
             raise e
         i += 1
-
+    con.commit()
+    cur.close()
     status = 200
     message = "Table " + table + " has been added the specified keys."
     return status, message, None, None
 
 
 def get_unique_key(table, mysql):
+    # Try to parse the table variable in order to detect exception.
+    tables = table.split(",")
+    if len(tables) == 0:
+        raise PredictableInvalidArgumentException("1")
+    elif len(tables) > 1:
+        raise PredictableInvalidArgumentException("2")
+
+    con = mysql.connection
+    cur = con.cursor()
+
+    # Check if the table is in the database
+    command = "SELECT * FROM `" + table + "`;"
+    try:
+        cur.execute(command)
+    except Exception as e:
+        cur.close()
+        raise PredictableTableNotFoundException
+
+
     pass
 
 
