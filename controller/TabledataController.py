@@ -64,6 +64,13 @@ def update_tabledata(table, column, value, condition, mysql):
 
 
 def delete_tabledata(table, condition, mysql):
+    # Try to parse the table variable in order to detect exception.
+    tables = table.split(",")
+    if len(tables) == 0:
+        raise PredictableInvalidArgumentException("1")
+    elif len(tables) > 1:
+        raise PredictableInvalidArgumentException("6")
+    
     command = "DELETE FROM `" + table +"` "
     commnad = command + "WHERE `" + condition + "`;"
     cur = mysql.connection.cursor()
