@@ -59,7 +59,7 @@ def extract_unique_key(u):
 
 def check_exist_from_json(key, data, tag):
     for row in data:
-        if row[tag] is key:
+        if row[tag] == key:
             return True
     return False
 

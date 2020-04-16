@@ -260,7 +260,6 @@ def get_unique_key(table, mysql):
             try:
                 ind = result.index('UNIQUE KEY')
             except Exception as e:
-                print(result)
                 stop = True
             if ind == -1:
                 continue
