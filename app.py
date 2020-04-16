@@ -160,6 +160,3 @@ class UniqueKey(Resource):
         status, message, data, error = update_unique_key(table, key, name, mysql)
         return organize_return(status, message, data, error)
 # Here ends the metadata module
-
-
-
