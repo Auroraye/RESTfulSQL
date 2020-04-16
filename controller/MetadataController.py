@@ -252,7 +252,8 @@ def get_unique_key(table, mysql):
     try:
         cur.execute(command)
         result = cur.fetchall()
-        result = result[0]
+        result = result[0][1]
+        cur.close()
     except Exception as e:
         raise e
     data = []
@@ -262,8 +263,9 @@ def get_unique_key(table, mysql):
             ind = -1
             # Check if there is more unique key.
             try:
-                ind = result.index("UNIQUE KEY")
+                ind = result.index('UNIQUE KEY')
             except Exception as e:
+                print(result)
                 stop = True
             if ind == -1:
                 continue
@@ -271,16 +273,17 @@ def get_unique_key(table, mysql):
             # Get the key name.
             b = result.index("`", ind + 1)
             e = result.index("`", b + 1)
-            key_name = result[b: e]
+            key_name = result[b+1: e]
 
             # Get what columns are in this key.
             b = result.index("(", e + 1)
             e = result.index(")", b + 1)
-            cols = result[b: e]
+            cols = result[b+1: e]
             columns = cols.split(",")
             i = 0
             while i < len(columns):
                 columns[i] = columns[i].strip('`')
+                i += 1
 
             # Pack up this key information.
             final = {"key_name": key_name, "columns": columns}
@@ -290,9 +293,8 @@ def get_unique_key(table, mysql):
             result = result[e+1:]
         except Exception as e:
             raise e
-
-
-    pass
+    status = 200
+    return status, None, data, None
 
 
 def delete_unique_key(table, name, mysql):

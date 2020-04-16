@@ -175,7 +175,7 @@ class UniqueKey(Resource):
 class UniqueKeyList(Resource):
     def get(self, table_name):
         status, message, data, error = get_unique_key(table_name, mysql)
-        return organize_return(status, message, data, error)
+        return organize_return_with_data(status, message, data, error)
 
 
 foreignkey_model = api.model("Unique Key Model",
@@ -202,6 +202,7 @@ class ForeignKey(Resource):
         name = request.json["key_names"]
         status, message, data, error = delete_foreign_key(table, name, mysql)
         return organize_return(status, message, data, error)
+
 
 @foreignkey_space.route("/<string:table_name>")
 class UniqueKeyList(Resource):
