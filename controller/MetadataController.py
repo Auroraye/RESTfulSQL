@@ -189,7 +189,7 @@ def post_unique_key(table, key, name, mysql):
     for k in uniques:
         ks = k.split(",")
         for a_k in ks:
-            if check_exist_from_json(a_k, table_structure) is False:
+            if check_exist_from_json(a_k, table_structure, "Field") is False:
                 raise PredictableUnknownKeyException(a_k)
 
     # Check the duplication of key and key name
@@ -229,12 +229,7 @@ def post_unique_key(table, key, name, mysql):
 
 
 def get_unique_key(table, mysql):
-    # Try to parse the table variable in order to detect exception.
-    tables = table.split(",")
-    if len(tables) == 0:
-        raise PredictableInvalidArgumentException("1")
-    elif len(tables) > 1:
-        raise PredictableInvalidArgumentException("2")
+    check_table_field(table)
 
     con = mysql.connection
     cur = con.cursor()
@@ -298,7 +293,24 @@ def get_unique_key(table, mysql):
 
 
 def delete_unique_key(table, name, mysql):
-    pass
+    names = name.split(",")
+
+    # Check if duplication in name field
+    tem = []
+    for n in names:
+        if n in tem:
+            raise PredictableDuplicateConstraintNameException(n)
+        else:
+            tem.append(n)
+
+    # Check if the keys are in the table.
+    status, message, key, error = get_unique_key(table, mysql)
+    for n in names:
+        if check_exist_from_json(n, key, "key_name") is False:
+            raise PredictableUnknownKeyException(n)
+
+    # Start to communicate with the database.
+
 
 
 def post_foreign_key(table, key, target, name, mysql):

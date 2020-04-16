@@ -57,8 +57,17 @@ def extract_unique_key(u):
     return uniques
 
 
-def check_exist_from_json(key, data):
+def check_exist_from_json(key, data, tag):
     for row in data:
-        if row["Field"] is key:
+        if row[tag] is key:
             return True
     return False
+
+
+def check_table_field(table):
+    # Try to parse the table variable in order to detect exception.
+    tables = table.split(",")
+    if len(tables) == 0:
+        raise PredictableInvalidArgumentException("1")
+    elif len(tables) > 1:
+        raise PredictableInvalidArgumentException("2")
