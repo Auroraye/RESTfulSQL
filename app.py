@@ -45,6 +45,7 @@ tabledata_model = api.model("Tabledata Model",
                          "values": fields.String(required=True),
                          "conditions": fields.String()})
 
+
 @table_space.route("")
 class TableList(Resource):
     @api.doc(responses={200: "OK", 400: "Invalid Argument", 500: "Mapping Key Error"})
@@ -61,6 +62,7 @@ class TableList(Resource):
                 500, e.__doc__, status=e.handle_me(), statusCode="300")
         except Exception as e:
             raise e
+
 
 @table_space.route("/<string:table_name>")
 class Table(Resource):
@@ -120,6 +122,7 @@ class TabledataList(Resource):
             raise e
             table_space.abort(
                 400, e.__doc__, status="Could not update information", statusCode="400")
+
 
 @tabledata_space.route("/<string:table_name>")
 class Tabledata(Resource):
