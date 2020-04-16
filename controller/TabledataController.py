@@ -40,10 +40,13 @@ def update_tabledata(table, column, value, condition, mysql):
     command = command + "SET "
     x = 0
     for elem in columns:
-        command = command + "`" + elem + "` = " + value[x] + " "
+        command = command + "`" + elem + "` = " + value[x] + ", "
         x+=1
+    command = command[:-2] + " "
     if len(condition) != 0:
         command = command + "Where " + condition + ";"
+    else:
+        command = command + ";"
     try:
         cur.execute(command)
     except Exception as e:
