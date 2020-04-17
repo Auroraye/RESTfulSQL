@@ -1,5 +1,7 @@
 import os
 
+import MySQLdb
+
 from controller.PredictableExeption import *
 from util.ExtractSpecialArray import *
 from util.QueryHelper import db_query
@@ -247,7 +249,6 @@ def get_unique_key(table, mysql):
     try:
         cur.execute(command)
         result = cur.fetchall()
-        print(result)
         result = result[0][1]
         cur.close()
     except Exception as e:
@@ -334,6 +335,7 @@ def delete_unique_key(table, name, mysql):
 
 
 def post_foreign_key(table, key, target, name, mysql):
+    status = 200
     check_table_field(table)
 
     keys = key.split(",")
@@ -380,7 +382,14 @@ def post_foreign_key(table, key, target, name, mysql):
         except Exception as e:
             raise PredictableInvalidArgumentException("8")
         status, message, data, error = get_unique_key(tab, mysql)
-        if check_exist_from_json(col, data, "key_name") is False:
+        found = False
+        for ele in data:
+            if len(ele["columns"]) > 1:
+                continue
+            if col in ele["columns"]:
+                found = True
+                break
+        if found is False:
             raise PredictableUnknownKeyException(col)
         dic = {"table": tab, "column": col}
         new_targets.append(dic)
@@ -396,11 +405,15 @@ def post_foreign_key(table, key, target, name, mysql):
         command += "`" + new_targets[i]["column"] + "`);"
         try:
             cur.execute(command)
+        except MySQLdb._exceptions.OperationalError as e:
+            status = 121
         except Exception as e:
+            print(command)
             con.rollback()
             cur.close()
             raise e
-    status = 200
+    con.commit()
+    cur.close()
     message = "Table " + table + " has been added the specified keys."
     return status, message, None, None
 
@@ -428,7 +441,6 @@ def get_foreign_key(table, mysql):
     try:
         cur.execute(command)
         result = cur.fetchall()
-        print(result)
         result = result[0][1]
         cur.close()
     except Exception as e:
