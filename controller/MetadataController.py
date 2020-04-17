@@ -367,6 +367,32 @@ def post_foreign_key(table, key, target, name, mysql):
             raise PredictableDuplicateConstraintNameException(n)
         else:
             tem.append(n)
+
+    # Check the  validation of target and reformat the targets.
+    new_targets = []
+    for t in targets:
+        tab = ""
+        col = ""
+        try:
+            ind = t.index(".")
+            tab = t[0:ind]
+            col = t[ind + 1:]
+        except Exception as e:
+            raise PredictableInvalidArgumentException("8")
+        status, message, data, error = get_unique_key(tab, mysql)
+        if check_exist_from_json(col, data, "key_name") is False:
+            raise PredictableUnknownKeyException(col)
+        dic = {"table": tab, "column": col}
+        new_targets.append(dic)
+
+    # Now, communicate with the database.
+    i = 0
+    con = mysql.connection
+    cur = con.cursor()
+    con.autocommit = False
+    while i < len(keys):
+        command = "ALTER TABLE `" + table + "` ADD CONSTRAINT `" + names[i] + "` "
+
     pass
 
 

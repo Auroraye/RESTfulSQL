@@ -36,6 +36,9 @@ class PredictableInvalidArgumentException(PredictableException):
         elif self.massage == "7":
             text = "Please define at least one key to delete."
             return text
+        elif self.massage == "8":
+            text = "There is a wrong format in the field of 'targets'."
+            return text
         else:
             return self.massage
 
