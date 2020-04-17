@@ -392,8 +392,17 @@ def post_foreign_key(table, key, target, name, mysql):
     con.autocommit = False
     while i < len(keys):
         command = "ALTER TABLE `" + table + "` ADD CONSTRAINT `" + names[i] + "` "
-
-    pass
+        command += "FOREIGN KEY (`" + keys[i] + "`) REFERENCES `" + new_targets[i]["table"] + "`("
+        command += "`" + new_targets[i]["column"] + "`);"
+        try:
+            cur.execute(command)
+        except Exception as e:
+            con.rollback()
+            cur.close()
+            raise e
+    status = 200
+    message = "Table " + table + " has been added the specified keys."
+    return status, message, None, None
 
 
 def delete_foreign_key(table, name, mysql):
