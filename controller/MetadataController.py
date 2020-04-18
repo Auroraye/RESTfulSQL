@@ -1,4 +1,9 @@
+import os
+
+import MySQLdb
+
 from controller.PredictableExeption import *
+from util.ExtractSpecialArray import *
 from util.QueryHelper import db_query
 
 
@@ -25,7 +30,7 @@ def get_metadata(table_name, mysql, current_database):
         message = "Success! Get all view info from " + current_database + "."
     else:
         result, error = db_query(
-            mysql, 'DESCRIBE {};'.format(table_name), None)
+            mysql, 'DESCRIBE `{}`;'.format(table_name), None)
         for item in result:
             # temp = jsonify(Field=item[0], Type=item[1], Null=item[2], Key=item[3])
             temp = {"Field": item[0],
@@ -170,3 +175,315 @@ def update_column(table, column, operation, value, mysql):
     status = 200
     message = "Table " + table + "'s metadata has been changed accordingly."
     return status, message, None, None
+
+
+def post_unique_key(table, key, name, mysql):
+    uniques = extract_unique_key(key)
+    names = name.split(",")
+
+    # The first potential error is that not all the keys have a corresponding name.
+    if len(uniques) != len(names):
+        raise PredictableNumberOfParameterNotMatchException("keys,key_names")
+
+    status, message, table_structure, error = get_metadata(table, mysql, os.getenv("MYSQL_DB"))
+
+    # Check the validation of each key.
+    for k in uniques:
+        ks = k.split(",")
+        for a_k in ks:
+            if check_exist_from_json(a_k, table_structure, "Field") is False:
+                raise PredictableUnknownKeyException(a_k)
+
+    # Check the duplication of key and key name
+    tem = []
+    for k in uniques:
+        if k in tem:
+            raise PredictableDuplicateKeyException(k)
+        else:
+            tem.append(k)
+    tem = []
+    for n in names:
+        if n in tem:
+            raise PredictableDuplicateConstraintNameException(n)
+        else:
+            tem.append(n)
+
+    con = mysql.connection
+    cur = con.cursor()
+    con.autocommit = False
+
+    i = 0
+    while i < len(uniques):
+        command = "ALTER TABLE `" + table + "` ADD CONSTRAINT `" + names[i] + "` "
+        command += "UNIQUE (" + uniques[i] + ");"
+        try:
+            cur.execute(command)
+        except Exception as e:
+            con.rollback()
+            cur.close()
+            raise e
+        i += 1
+    con.commit()
+    cur.close()
+    status = 200
+    message = "Table " + table + " has been added the specified keys."
+    return status, message, None, None
+
+
+def get_unique_key(table, mysql):
+    check_table_field(table)
+
+    con = mysql.connection
+    cur = con.cursor()
+
+    # Check if the table is in the database
+    command = "SELECT * FROM `" + table + "`;"
+    try:
+        cur.execute(command)
+    except Exception as e:
+        cur.close()
+        raise PredictableTableNotFoundException
+
+    command = "SHOW CREATE TABLE `" + table + "`;"
+    result = ""
+    try:
+        cur.execute(command)
+        result = cur.fetchall()
+        result = result[0][1]
+        cur.close()
+    except Exception as e:
+        raise e
+    data = []
+    stop = False
+    while not stop:
+        try:
+            ind = -1
+            # Check if there is more unique key.
+            try:
+                ind = result.index('UNIQUE KEY')
+            except Exception as e:
+                stop = True
+            if ind == -1:
+                continue
+
+            # Get the key name.
+            b = result.index("`", ind + 1)
+            e = result.index("`", b + 1)
+            key_name = result[b+1: e]
+
+            # Get what columns are in this key.
+            b = result.index("(", e + 1)
+            e = result.index(")", b + 1)
+            cols = result[b+1: e]
+            columns = cols.split(",")
+            i = 0
+            while i < len(columns):
+                columns[i] = columns[i].strip('`')
+                i += 1
+
+            # Pack up this key information.
+            final = {"key_name": key_name, "columns": columns}
+            data.append(final)
+
+            # Cut off the rest of the result
+            result = result[e+1:]
+        except Exception as e:
+            raise e
+    status = 200
+    return status, None, data, None
+
+
+def delete_unique_key(table, name, mysql):
+    names = name.split(",")
+    if len(names) == 0:
+        raise PredictableInvalidArgumentException("7")
+
+    # Check if duplication in name field
+    tem = []
+    for n in names:
+        if n in tem:
+            raise PredictableDuplicateConstraintNameException(n)
+        else:
+            tem.append(n)
+
+    # Check if the keys are in the table.
+    status, message, key, error = get_unique_key(table, mysql)
+    for n in names:
+        if check_exist_from_json(n, key, "key_name") is False:
+            raise PredictableUnknownKeyException(n)
+
+    # Start to communicate with the database.
+    con = mysql.connection
+    cur = con.cursor()
+    con.autocommit = False
+
+    for n in names:
+        command = "ALTER TABLE `" + table + "` DROP INDEX `" + n + "`;"
+        try:
+            cur.execute(command)
+        except Exception as e:
+            con.rollback()
+            cur.close()
+            raise e
+
+    status = 200
+    data = ""
+    message = "Keys are deleted."
+    error = ""
+
+    return status, message, data, error
+
+
+def post_foreign_key(table, key, target, name, mysql):
+    status = 200
+    check_table_field(table)
+
+    keys = key.split(",")
+    targets = target.split(",")
+    names = name.split(",")
+
+    # Check the length of there three fields.
+    if len(keys) != len(targets):
+        raise PredictableNumberOfParameterNotMatchException("keys,targets")
+    if len(keys) != len(names):
+        raise PredictableNumberOfParameterNotMatchException("keys,key_names")
+    if len(targets) != len(names):
+        raise PredictableNumberOfParameterNotMatchException("targets,key_names")
+
+    # Check the duplication of any of the three fields.
+    tem = []
+    for k in keys:
+        if k in tem:
+            raise PredictableDuplicateKeyException(k)
+        else:
+            tem.append(k)
+    tem = []
+    for k in targets:
+        if k in tem:
+            raise PredictableDuplicateKeyException(k)
+        else:
+            tem.append(k)
+    tem = []
+    for n in names:
+        if n in tem:
+            raise PredictableDuplicateConstraintNameException(n)
+        else:
+            tem.append(n)
+
+    # Check the  validation of target and reformat the targets.
+    new_targets = []
+    for t in targets:
+        tab = ""
+        col = ""
+        try:
+            ind = t.index(".")
+            tab = t[0:ind]
+            col = t[ind + 1:]
+        except Exception as e:
+            raise PredictableInvalidArgumentException("8")
+        status, message, data, error = get_unique_key(tab, mysql)
+        found = False
+        for ele in data:
+            if len(ele["columns"]) > 1:
+                continue
+            if col in ele["columns"]:
+                found = True
+                break
+        if found is False:
+            raise PredictableUnknownKeyException(col)
+        dic = {"table": tab, "column": col}
+        new_targets.append(dic)
+
+    # Now, communicate with the database.
+    i = 0
+    con = mysql.connection
+    cur = con.cursor()
+    con.autocommit = False
+    while i < len(keys):
+        command = "ALTER TABLE `" + table + "` ADD CONSTRAINT `" + names[i] + "` "
+        command += "FOREIGN KEY (`" + keys[i] + "`) REFERENCES `" + new_targets[i]["table"] + "`("
+        command += "`" + new_targets[i]["column"] + "`);"
+        try:
+            cur.execute(command)
+        except MySQLdb._exceptions.OperationalError as e:
+            status = 121
+        except Exception as e:
+            print(command)
+            con.rollback()
+            cur.close()
+            raise e
+    con.commit()
+    cur.close()
+    message = "Table " + table + " has been added the specified keys."
+    return status, message, None, None
+
+
+def delete_foreign_key(table, name, mysql):
+    pass
+
+
+def get_foreign_key(table, mysql):
+    check_table_field(table)
+
+    con = mysql.connection
+    cur = con.cursor()
+
+    # Check if the table is in the database
+    command = "SELECT * FROM `" + table + "`;"
+    try:
+        cur.execute(command)
+    except Exception as e:
+        cur.close()
+        raise PredictableTableNotFoundException
+
+    command = "SHOW CREATE TABLE `" + table + "`;"
+    result = ""
+    try:
+        cur.execute(command)
+        result = cur.fetchall()
+        result = result[0][1]
+        cur.close()
+    except Exception as e:
+        raise e
+    data = []
+    stop = False
+    while not stop:
+        try:
+            ind = -1
+            # Check if there is more unique key.
+            try:
+                ind = result.index('CONSTRAINT')
+            except Exception as e:
+                stop = True
+            if ind == -1:
+                continue
+
+            # Get the key name.
+            b = result.index("`", ind + 1)
+            e = result.index("`", b + 1)
+            key_name = result[b + 1: e]
+
+            # Get what column is in this key.
+            b = result.index("(", e + 1)
+            e = result.index(")", b + 1)
+            col = result[b + 2: e-1]
+
+            # Get the target.
+            b = result.index("REFERENCES", e + 1)
+            b = result.index("`", b + 1)
+            e = result.index("`", b + 1)
+            t_table = result[b + 1: e]
+            b = result.index("`", e + 1)
+            e = result.index("`", b + 1)
+            t_column = result[b + 1: e]
+
+            # Pack up this key information.
+            final = {"key_name": key_name, "column": col, "target_table": t_table, "target_column": t_column}
+            data.append(final)
+
+            # Cut off the rest of the result
+            result = result[e + 1:]
+        except Exception as e:
+            raise e
+    status = 200
+    return status, None, data, None

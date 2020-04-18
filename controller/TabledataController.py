@@ -40,10 +40,13 @@ def update_tabledata(table, column, value, condition, mysql):
     command = command + "SET "
     x = 0
     for elem in columns:
-        command = command + "`" + elem + "` = " + value[x] + " "
+        command = command + "`" + elem + "` = " + value[x] + ", "
         x += 1
+    command = command[:-2] + " "
     if len(condition) != 0:
         command = command + "Where " + condition + ";"
+    else:
+        command = command + ";"
     try:
         cur.execute(command)
     except Exception as e:
@@ -61,6 +64,13 @@ def update_tabledata(table, column, value, condition, mysql):
 
 
 def delete_tabledata(table, condition, mysql):
+    # Try to parse the table variable in order to detect exception.
+    tables = table.split(",")
+    if len(tables) == 0:
+        raise PredictableInvalidArgumentException("1")
+    elif len(tables) > 1:
+        raise PredictableInvalidArgumentException("6")
+
     command = "DELETE FROM `" + table + "` "
     commnad = command + "WHERE `" + condition + "`;"
     cur = mysql.connection.cursor()

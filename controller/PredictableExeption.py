@@ -33,6 +33,12 @@ class PredictableInvalidArgumentException(PredictableException):
         elif self.massage == "6":
             text = "Only one table can be updated each time, please remove other tables from the 'table' field."
             return text
+        elif self.massage == "7":
+            text = "Please define at least one key to delete."
+            return text
+        elif self.massage == "8":
+            text = "There is a wrong format in the field of 'targets'."
+            return text
         else:
             return self.massage
 
@@ -78,4 +84,16 @@ class PredictableTypeNotMatchException(PredictableException):
         fields = self.massage.split(",")
         text = "The value does not match the supposed type. Suppose to have '" + fields[0] + "' typed value,"
         text += "but get value '" + fields[1] + "'."
+        return text
+
+
+class PredictableDuplicateKeyException(PredictableException):
+    def handle_me(self):
+        text = "There are at least two identical keys in the 'keys' filed, and it is '" + self.massage + "'."
+        return text
+
+
+class PredictableDuplicateConstraintNameException(PredictableException):
+    def handle_me(self):
+        text = "There are at least two identical key name in the 'key_names' filed, and it is '" + self.massage + "'."
         return text
