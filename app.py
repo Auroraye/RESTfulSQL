@@ -5,6 +5,7 @@ from flask_restplus import Api, Resource, fields, reqparse
 
 from util.Result import *
 from util.QueryHelper import *
+from util.LFUHelper import *
 from controller.MetadataController import *
 from controller.PredictableExeption import PredictableException
 from controller.TableController import create_table, delete_table
@@ -211,3 +212,10 @@ class UniqueKeyList(Resource):
         return organize_return_with_data(status, message, data, error)
 
 # Here ends the metadata module
+
+test_foreignkey_space = api.namespace("metadata/foreignkey/test", description="Manage foreign key")
+
+@test_foreignkey_space.route("/<string:table_name>")
+class test(Resource):
+    def get(self, table_name):
+        start(mysql)
