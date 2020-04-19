@@ -1,4 +1,4 @@
-
+from util.LFUHelper import *
 from util.QueryHelper import db_query
 
 def get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B, returned_view_name):
@@ -22,6 +22,7 @@ def get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B, returne
             message = "Union between two tables is created successfully. New view \'{}\' is saved.".format(
                 returned_view_name)
             db_query(mysql, 'CREATE VIEW {} AS SELECT * FROM (SELECT * FROM {} UNION SELECT * FROM {}) AS temp;'.format(returned_view_name, table_name_A, table_name_B), None)
+            LFU_increment(returned_view_name, mysql)
         else:
             message = "Union between two tables is created successfully. No view is saved."
     else:
@@ -56,6 +57,7 @@ def get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B, returne
         if returned_view_name != "":
             result, error = db_query(mysql, 'CREATE VIEW {} AS SELECT * FROM (SELECT {} FROM {} UNION SELECT {} FROM {}) AS temp;'.format(
                 returned_view_name, col_str_A, table_name_A, col_str_B, table_name_B), None)
+            LFU_increment(returned_view_name, mysql)
             if error != None:
                 message = "Some error occurs " + error
             else:
