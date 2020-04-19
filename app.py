@@ -9,7 +9,7 @@ from util.LFUHelper import *
 from controller.MetadataController import *
 from controller.PredictableExeption import PredictableException
 from controller.TableController import create_table, delete_table
-from controller.MetadataController import get_metadata
+from controller.UnionController import *
 from controller.MetaController import *
 from controller.TabledataController import *
 
@@ -213,9 +213,38 @@ class UniqueKeyList(Resource):
 
 # Here ends the metadata module
 
-test_foreignkey_space = api.namespace("metadata/foreignkey/test", description="Manage foreign key")
 
-@test_foreignkey_space.route("/<string:table_name>")
-class test(Resource):
-    def get(self, table_name):
-        start(mysql)
+union_space = api.namespace("union", description="get a union of two table")
+
+'''
+If columns_A and columns_B are empty, SELECT ALL from both tables.
+(以后可以支持UNION ALL)
+'''
+union_model = api.model("Union Model",
+                            {"table_name_A": fields.String(required=True),
+                             "columns_A": fields.String,
+                             "table_name_B": fields.String(required=True),
+                             "columns_B": fields.String,
+                             "returned_view_name": fields.String})
+
+@union_space.route("")
+class Union(Resource):
+    @api.expect(union_model)
+    def post(self):
+        table_name_A = request.json["table_name_A"]
+        columns_A = request.json["columns_A"]
+        table_name_B = request.json["table_name_B"]
+        columns_B = request.json["columns_B"]
+        returned_view_name = request.json["returned_view_name"]
+
+        col_list_A = columns_A.split(',')
+        col_list_B = columns_B.split(',')
+
+        if len(col_list_A) != len(col_list_B):
+            raise ValueError("Number of columns in both tables are not equal.")
+
+        status, message, data, error = get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B, returned_view_name)
+        return organize_return_with_data(status, message, data, error)
+
+
+
