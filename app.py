@@ -45,7 +45,6 @@ union_space = api.namespace("union", description="get a union of two table")
 groupby_space = api.namespace("groupby", description="apply grouping and statistic functions to a table")
 join_space = api.namespace("join", description="get a join of tables")
 
-
 # Here starts the table module.
 table_model = api.model("Table Model",
                         {"name": fields.String(required=True),
