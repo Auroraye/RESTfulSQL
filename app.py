@@ -3,6 +3,7 @@ from flask_mysqldb import MySQL
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
 
+from controller.GroupController import post_group_by
 from util.Result import *
 from util.QueryHelper import *
 from util.LFUHelper import *
@@ -41,8 +42,12 @@ metadata_space = api.namespace("metadata", description="Manage metadata")
 uniquekey_space = api.namespace("metadata/uniquekey", description="Manage unique key")
 foreignkey_space = api.namespace("metadata/foreignkey", description="Manage foreign key")
 union_space = api.namespace("union", description="get a union of two table")
+<<<<<<< HEAD
+groupby_space = api.namespace("groupby", description="apply grouping and statistic functions to a table")
+=======
 join_space = api.namespace("join", description="get a join of tables")
 
+>>>>>>> fad5bfc627ee829bcdfba68b5bd08c75274896fd
 
 # Here starts the table module.
 table_model = api.model("Table Model",
@@ -50,10 +55,12 @@ table_model = api.model("Table Model",
                          "columns": fields.String(required=True),
                          "uniques": fields.String()})
 
-update_table_model = api.model("Table Model - Update",{
-                        "name": fields.String(description="Table name", example="Table1", required=True),
-                        "columns": fields.String(description="Column name in comma separated list", example="Column1, Column2, Column3",required=True),
-                        "operation": fields.String(description="Operation on the columns", enum=['insert', 'drop'], required=True)})
+update_table_model = api.model("Table Model - Update", {
+    "name": fields.String(description="Table name", example="Table1", required=True),
+    "columns": fields.String(description="Column name in comma separated list", example="Column1, Column2, Column3",
+                             required=True),
+    "operation": fields.String(description="Operation on the columns", enum=['insert', 'drop'], required=True)})
+
 
 @table_space.route("")
 class TableList(Resource):
@@ -71,7 +78,7 @@ class TableList(Resource):
                 500, e.__doc__, status=e.handle_me(), statusCode="300")
         except Exception as e:
             raise e
-    
+
     @api.doc(description="Alter table columns", responses={200: "OK", 400: "Invalid Operation"})
     @api.expect(update_table_model)
     def put(self):
@@ -92,6 +99,8 @@ class Table(Resource):
         if (error):
             table_space.abort(500, error)
         return organize_return(status, message, data, error)
+
+
 # Here ends the table module
 
 
@@ -101,6 +110,10 @@ tabledata_model = api.model("Tabledata Model",
                              "columns": fields.String(required=True),
                              "values": fields.String(required=True),
                              "conditions": fields.String()})
+insertdata_model = api.model("Insert Data Model",
+                             {"name": fields.String(required=True),
+                              "columns": fields.String(required=True),
+                              "values": fields.String(required=True)})
 
 
 @tabledata_space.route("")
@@ -124,13 +137,27 @@ class TabledataList(Resource):
 
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
     @api.expect(tabledata_model)
-    def post(self):
+    def put(self):
         try:
             table = request.json["name"]
             column = request.json["columns"]
             value = request.json["values"]
             conditions = request.json["conditions"]
             status, message, data, error = update_tabledata(table, column, value, conditions, mysql)
+            return {"message": message}, status
+        except PredictableException as e:
+            table_space.abort(
+                500, e.__doc__, status=e.hangdle_me(), statusCode="300")
+        except Exception as e:
+            raise e
+
+    @api.expect(insertdata_model)
+    def post(self):
+        try:
+            table = request.json["name"]
+            column = request.json["columns"]
+            value = request.json["values"]
+            status, message, data, error = vanilla_post_tabledata(table, column, value, mysql)
             return {"message": message}, status
         except PredictableException as e:
             table_space.abort(
@@ -146,6 +173,8 @@ class Tabledata(Resource):
         condition = request.json["condition"]
         status, message, data, error = delete_tabledata(table_name, condition, mysql)
         return {"message": message}, status
+
+
 # Here ends the table data module
 
 
@@ -187,8 +216,8 @@ uniquekey_model = api.model("Unique Key Model - Post",
                              "keys": fields.String(required=True),
                              "key_names": fields.String(required=True)})
 key_delete = api.model("Unique Key Model - Delete",
-                            {"name": fields.String(required=True),
-                             "key_names": fields.String(required=True)})
+                       {"name": fields.String(required=True),
+                        "key_names": fields.String(required=True)})
 
 
 @uniquekey_space.route("")
@@ -217,10 +246,10 @@ class UniqueKeyList(Resource):
 
 
 foreignkey_model = api.model("Unique Key Model",
-                            {"name": fields.String(required=True),
-                             "keys": fields.String(required=True),
-                             "targets": fields.String(required=True, description="Format is 'TableName.ColumnName'."),
-                             "key_names": fields.String(required=True)})
+                             {"name": fields.String(required=True),
+                              "keys": fields.String(required=True),
+                              "targets": fields.String(required=True, description="Format is 'TableName.ColumnName'."),
+                              "key_names": fields.String(required=True)})
 
 
 @foreignkey_space.route("")
@@ -248,6 +277,7 @@ class UniqueKeyList(Resource):
         status, message, data, error = get_foreign_key(table_name, mysql)
         return organize_return_with_data(status, message, data, error)
 
+
 # Here ends the metadata module
 
 
@@ -256,11 +286,12 @@ If columns_A and columns_B are empty, SELECT ALL from both tables.
 (以后可以支持UNION ALL)
 '''
 union_model = api.model("Union Model",
-                            {"table_name_A": fields.String(required=True),
-                             "columns_A": fields.String,
-                             "table_name_B": fields.String(required=True),
-                             "columns_B": fields.String,
-                             "returned_view_name": fields.String})
+                        {"table_name_A": fields.String(required=True),
+                         "columns_A": fields.String,
+                         "table_name_B": fields.String(required=True),
+                         "columns_B": fields.String,
+                         "returned_view_name": fields.String})
+
 
 @union_space.route("")
 class Union(Resource):
@@ -278,7 +309,8 @@ class Union(Resource):
         if len(col_list_A) != len(col_list_B):
             raise ValueError("Number of columns in both tables are not equal.")
 
-        status, message, data, error = get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B, returned_view_name)
+        status, message, data, error = get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B,
+                                                 returned_view_name)
         return organize_return_with_data(status, message, data, error)
 
 join_model = api.model("Join Model",
@@ -287,6 +319,33 @@ join_model = api.model("Join Model",
                              "joinType": fields.String(required=True),
                              "match": fields.String(required=True),
                              "returned_view_name": fields.String})
+
+group_model = api.model("Group Model",
+                        {"name": fields.String(required=True),
+                         "functions": fields.String,
+                         "rename": fields.String(required=True),
+                         "group_by": fields.String,
+                         "view_name": fields.String})
+
+
+@groupby_space.route("")
+class GroupBy(Resource):
+    @api.expect(group_model)
+    def post(self):
+        table = request.json["name"]
+        function = request.json["functions"]
+        new_name = request.json["rename"]
+        groupby = request.json["group_by"]
+        view = request.json["view_name"]
+
+        try:
+            status, message, data, error = post_group_by(table, function, new_name, groupby, view, mysql)
+            return organize_return(status, message, data, error)
+        except PredictableException as e:
+            return e.handle_me()
+        except Exception as e:
+            raise e
+
 
 @join_space.route("")
 class Join(Resource):

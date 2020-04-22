@@ -98,6 +98,25 @@ class PredictableDuplicateConstraintNameException(PredictableException):
         text = "There are at least two identical key name in the 'key_names' filed, and it is '" + self.massage + "'."
         return text
 
+
+class PredictableAmbiguousColumnNameException(PredictableException):
+    def handle_me(self):
+        fields = self.massage.split(",")
+        tag = ""
+        if fields[0] == "a":
+            tag = "referenced"
+        else:
+            tag = "referencing"
+        text = "There are at least two " + tag + " tables having a column with the same name, " + fields[1] + "."
+        return text
+
+
+class PredictableHaveNoRightException(PredictableException):
+    def handle_me(self):
+        text = "Sorry, you have no right to access the schema database, so we cannot query referencing tables for you."
+        return text
+
+
 class PredictableJoinTableNotEnoughException(PredictableException):
     def handle_me(self):
         text = "The join operation requires at least two tables"

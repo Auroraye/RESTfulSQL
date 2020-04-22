@@ -1,6 +1,7 @@
 from util.LFUHelper import *
 from util.QueryHelper import db_query
 
+
 def get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B, returned_view_name):
     # check whether table contains in the db
     table_name_A = table_name_A.strip()
@@ -67,6 +68,7 @@ def get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B, returne
             message = "Union between two tables is created successfully. No view is saved."
 
     return 200, message, data, None
+
 
 def check_exist(col_name, table, mysql):
     is_exist, error = db_query(mysql, 'SHOW COLUMNS FROM `{}` LIKE \'{}\';'.format(table, col_name), None)

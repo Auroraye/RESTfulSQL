@@ -88,6 +88,7 @@ def delete_table(table_name, mysql):
 
     return status, message, None, error
 
+
 def update_table(table, columns, operation, mysql):
     if operation != "insert" or operation != "drop":
         return 400, None, None, "Invalid Operation"
