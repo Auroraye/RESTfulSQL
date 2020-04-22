@@ -42,12 +42,8 @@ metadata_space = api.namespace("metadata", description="Manage metadata")
 uniquekey_space = api.namespace("metadata/uniquekey", description="Manage unique key")
 foreignkey_space = api.namespace("metadata/foreignkey", description="Manage foreign key")
 union_space = api.namespace("union", description="get a union of two table")
-<<<<<<< HEAD
 groupby_space = api.namespace("groupby", description="apply grouping and statistic functions to a table")
-=======
 join_space = api.namespace("join", description="get a join of tables")
-
->>>>>>> fad5bfc627ee829bcdfba68b5bd08c75274896fd
 
 # Here starts the table module.
 table_model = api.model("Table Model",
