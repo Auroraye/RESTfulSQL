@@ -118,7 +118,8 @@ class TabledataList(Resource):
     @api.doc(description="Get the data from table" 
         + "<br/> <br/> Explanation: <br/> explanation "
         + "<br/> <br/> Assumption: <br/> assumption "
-        + "<br/> <br/> Limitation: <br/> limitation")
+        + "<br/> <br/> Limitation: <br/> limitation" 
+        + "<br/> <br/> Example: <br/> example" )
     @api.param('sort_by', description='Sort by', type='string')
     @api.param('filter', description='Apply a filter', type='string')
     @api.param('page', description='Page to retrieve (each page contains 250 rows)', type='integer')
