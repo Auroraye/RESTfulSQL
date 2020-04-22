@@ -27,16 +27,17 @@ api = Api(app=flask_app,
           title="RESTfulSQL API",
           description="A Restful API Wrapper for MYSQL")
 
-flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
-flask_app.config["MYSQL_PORT"] = 3306
-flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
-flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
-flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
+# flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
+# flask_app.config["MYSQL_PORT"] = 3306
+# flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
+# flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
+# flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
 
 
 
 mysql = MySQL(flask_app)
 
+connect_space = api.namespace("connect", description="Connect to database")
 table_space = api.namespace("table", description="Manage tables")
 tabledata_space = api.namespace("table/data", description="Manage data records")
 metadata_space = api.namespace("metadata", description="Manage metadata")
@@ -45,6 +46,32 @@ foreignkey_space = api.namespace("metadata/foreignkey", description="Manage fore
 union_space = api.namespace("union", description="Get a union of two table")
 groupby_space = api.namespace("groupby", description="Apply grouping and statistic functions to a table")
 join_space = api.namespace("join", description="Get a join of tables")
+
+connect_model = api.model("Connect Model",
+                        {"host": fields.String(description="database host", example="localhost", required=True),
+                         "port": fields.Integer(description="database port", example=3306, required=True),
+                         "username": fields.String(description="database username", example="root", required=True),
+                         "password": fields.String(description="database password", example="password", required=True),
+                         "database": fields.String(description="database name", example="database", required=True)})
+
+@connect_space.route("")
+class Connect(Resource):
+    @api.doc(responses={200: "OK", 400: "Failed to connect to database"})
+    @api.expect(connect_model)
+    def post(self):
+        flask_app.config["MYSQL_HOST"] = request.json["host"]
+        flask_app.config["MYSQL_PORT"] = int(request.json["port"])
+        flask_app.config["MYSQL_USER"] = request.json["username"]
+        flask_app.config["MYSQL_PASSWORD"] = request.json["password"]
+        flask_app.config["MYSQL_DB"] = request.json["database"]
+
+        result, error = db_query(mysql, "show status")
+        if (error):
+            table_space.abort(400, error)
+            # return {"error": error}, 400
+        else:
+        # status, message, data, error = create_table(table, column, unique, mysql)
+            return {"message": "Connected to database!"}, 200
 
 # Here starts the table module.
 table_model = api.model("Table Model",
@@ -133,8 +160,11 @@ class TabledataList(Resource):
         filter = request.args["filter"] if "filter" in request.args else None
         sort_by = request.args["sort_by"] if "sort_by" in request.args else None
         status, message, data, error = get_tabledata(name, columns, page, filter, sort_by, mysql)
-
-        return return_response(status, message, data)
+        if (error):
+            table_space.abort(400, error)
+            return error, 400
+        else:
+            return return_response(status, message, data)
 
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
     @api.expect(tabledata_model)
