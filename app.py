@@ -34,6 +34,7 @@ flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
 flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
 
 
+
 mysql = MySQL(flask_app)
 
 table_space = api.namespace("table", description="Manage tables")
@@ -354,4 +355,4 @@ class Join(Resource):
         returned_view_name = request.json["returned_view_name"]
 
         status, message, data, error = get_join(mysql, tables, columns, jointype, match, returned_view_name)
-        return organize_return_with_data(status, message, data, error)
+        return organize_return(status, message, data, error)
