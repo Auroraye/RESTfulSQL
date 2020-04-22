@@ -13,6 +13,7 @@ from controller.TableController import *
 from controller.UnionController import *
 from controller.MetaController import *
 from controller.TabledataController import *
+from controller.JoinController import *
 
 # Import env variable
 import os
@@ -32,6 +33,7 @@ flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
 flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
 flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
 
+
 mysql = MySQL(flask_app)
 
 table_space = api.namespace("table", description="Manage tables")
@@ -40,7 +42,12 @@ metadata_space = api.namespace("metadata", description="Manage metadata")
 uniquekey_space = api.namespace("metadata/uniquekey", description="Manage unique key")
 foreignkey_space = api.namespace("metadata/foreignkey", description="Manage foreign key")
 union_space = api.namespace("union", description="get a union of two table")
+<<<<<<< HEAD
 groupby_space = api.namespace("groupby", description="apply grouping and statistic functions to a table")
+=======
+join_space = api.namespace("join", description="get a join of tables")
+
+>>>>>>> fad5bfc627ee829bcdfba68b5bd08c75274896fd
 
 # Here starts the table module.
 table_model = api.model("Table Model",
@@ -111,6 +118,23 @@ insertdata_model = api.model("Insert Data Model",
 
 @tabledata_space.route("")
 class TabledataList(Resource):
+    @api.doc(description="Get the data from table")
+    @api.param('sort_by', description='Sort by', type='string')
+    @api.param('filter', description='Apply a filter', type='string')
+    @api.param('page', description='Page to retrieve (each page contains 250 rows)', type='integer')
+    @api.param('columns', description='Columns to retrieve', type='string')
+    @api.param('name', description='Table name', type='string', required=True)
+    @api.doc(responses={200: "OK"})
+    def get(self):
+        name = request.args["name"]
+        columns = request.args["columns"] if "columns" in request.args else None
+        page = request.args["page"] if "page" in request.args else 1
+        filter = request.args["filter"] if "filter" in request.args else None
+        sort_by = request.args["sort_by"] if "sort_by" in request.args else None
+        status, message, data, error = get_tabledata(name, columns, page, filter, sort_by, mysql)
+
+        return return_response(status, message, data)
+
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
     @api.expect(tabledata_model)
     def put(self):
@@ -289,6 +313,12 @@ class Union(Resource):
                                                  returned_view_name)
         return organize_return_with_data(status, message, data, error)
 
+join_model = api.model("Join Model",
+                            {"tables": fields.String(required=True),
+                             "columns": fields.String(required=True),
+                             "joinType": fields.String(required=True),
+                             "match": fields.String(required=True),
+                             "returned_view_name": fields.String})
 
 group_model = api.model("Group Model",
                         {"name": fields.String(required=True),
@@ -315,3 +345,17 @@ class GroupBy(Resource):
             return e.handle_me()
         except Exception as e:
             raise e
+
+
+@join_space.route("")
+class Join(Resource):
+    @api.expect(join_model)
+    def get(self):
+        tables = request.json["tables"]
+        columns = request.json["columns"]
+        jointype = request.json["joinType"]
+        match = request.json["match"]
+        returned_view_name = request.json["returned_view_name"]
+
+        status, message, data, error = get_join(mysql, tables, columns, jointype, match, returned_view_name)
+        return organize_return_with_data(status, message, data, error)

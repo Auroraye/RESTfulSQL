@@ -117,3 +117,7 @@ class PredictableHaveNoRightException(PredictableException):
         return text
 
 
+class PredictableJoinTableNotEnoughException(PredictableException):
+    def handle_me(self):
+        text = "The join operation requires at least two tables"
+        return text
