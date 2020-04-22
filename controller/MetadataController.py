@@ -294,6 +294,7 @@ def get_unique_key(table, mysql):
 
 
 def delete_unique_key(table, name, mysql):
+    check_table_field(table)
     names = name.split(",")
     if len(names) == 0:
         raise PredictableInvalidArgumentException("7")
@@ -335,6 +336,7 @@ def delete_unique_key(table, name, mysql):
 
 
 def post_foreign_key(table, key, target, name, mysql):
+    check_table_field(table)
     status = 200
     check_table_field(table)
 
@@ -419,7 +421,42 @@ def post_foreign_key(table, key, target, name, mysql):
 
 
 def delete_foreign_key(table, name, mysql):
-    pass
+    check_table_field(table)
+    names = name.split(",")
+    if len(names) < 1:
+        raise PredictableInvalidArgumentException("7")
+    t1, t2, data, t3 = get_foreign_key(table, mysql)
+    fk_list = []
+    for i in data:
+        fk_list.append(i["key_name"])
+
+    tem = []
+    for n in names:
+        if n not in fk_list:
+            raise PredictableUnknownKeyException(n)
+        if n not in tem:
+            tem.append(n)
+        else:
+            raise PredictableDuplicateConstraintNameException(n)
+    con = mysql.connection
+    cur = con.cursor()
+    con.autocommit = False
+    for key in tem:
+        command = "ALTER TABLE `" + table + "` DROP FOREIGN KEY `" + key + "`;"
+        try:
+            cur.execute(key)
+        except Exception as e:
+            con.rollback()
+            cur.close()
+            raise e
+    con.commit()
+    cur.close()
+    status = 200
+    data = ""
+    message = "Keys are deleted."
+    error = ""
+
+    return status, message, data, error
 
 
 def get_foreign_key(table, mysql):
