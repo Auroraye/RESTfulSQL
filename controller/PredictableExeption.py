@@ -97,3 +97,8 @@ class PredictableDuplicateConstraintNameException(PredictableException):
     def handle_me(self):
         text = "There are at least two identical key name in the 'key_names' filed, and it is '" + self.massage + "'."
         return text
+
+class PredictableJoinTableNotEnoughException(PredictableException):
+    def handle_me(self):
+        text = "The join operation requires at least two tables"
+        return text

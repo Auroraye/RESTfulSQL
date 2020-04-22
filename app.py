@@ -12,6 +12,7 @@ from controller.TableController import *
 from controller.UnionController import *
 from controller.MetaController import *
 from controller.TabledataController import *
+from controller.JoinController import *
 
 # Import env variable
 import os
@@ -38,7 +39,8 @@ tabledata_space = api.namespace("table/data", description="Manage data records")
 metadata_space = api.namespace("metadata", description="Manage metadata")
 uniquekey_space = api.namespace("metadata/uniquekey", description="Manage unique key")
 foreignkey_space = api.namespace("metadata/foreignkey", description="Manage foreign key")
-union_space = api.namespace("union", description="Get a union of two table")
+union_space = api.namespace("union", description="get a union of two table")
+join_space = api.namespace("join", description="get a join of tables")
 
 
 # Here starts the table module.
