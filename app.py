@@ -102,6 +102,23 @@ tabledata_model = api.model("Tabledata Model",
 
 @tabledata_space.route("")
 class TabledataList(Resource):
+    @api.doc(description="Get the data from table")
+    @api.param('sort_by', description='Sort by', type='string')
+    @api.param('filter', description='Apply a filter', type='string')
+    @api.param('page', description='Page to retrieve (each page contains 250 rows)', type='integer')
+    @api.param('columns', description='Columns to retrieve', type='string')
+    @api.param('name', description='Table name', type='string', required=True)
+    @api.doc(responses={200: "OK"})
+    def get(self):
+        name = request.args["name"]
+        columns = request.args["columns"] if "columns" in request.args else None
+        page = request.args["page"] if "page" in request.args else 1
+        filter = request.args["filter"] if "filter" in request.args else None
+        sort_by = request.args["sort_by"] if "sort_by" in request.args else None
+        status, message, data, error = get_tabledata(name, columns, page, filter, sort_by, mysql)
+
+        return return_response(status, message, data)
+
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
     @api.expect(tabledata_model)
     def post(self):

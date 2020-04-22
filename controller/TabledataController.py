@@ -1,6 +1,33 @@
 from util.QueryHelper import db_query
 from controller.PredictableExeption import *
 
+def get_tabledata(table, columns, page, filter, sort_by, mysql):
+    command = "SELECT "
+    if columns:
+        columns = columns.split(",")
+        for column in columns:
+            command += column + ","
+        command = command[:-1] + " "
+    else: 
+        command += "* "
+    
+    command += "FROM " + table
+
+    if (filter):
+        command += " WHERE " + filter
+
+    if (sort_by):
+        command += " ORDER BY "
+        sort_by = sort_by.split(",")
+        for sort in sort_by:
+            command += sort + ","
+        command = command[:-1]
+
+    command += " LIMIT 250 OFFSET " + str((int(page) - 1) * 250)
+
+    result, error = db_query(mysql, command)
+    return 200, "Success", result, None
+
 
 def update_tabledata(table, column, value, condition, mysql):
     # Try to parse the table variable in order to detect exception.
