@@ -18,7 +18,8 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
     if (returned_view_name != ""):
         command = "CREATE VIEW " + returned_view_name + " AS SELECT "
     else:
-        command = "CREATE VIEW " + table[0] + "view AS SELECT "
+        messgae = "View name missed"
+        return 400, message, None, None
     if (columns == ""):
             command += "* from "
     else:
@@ -52,11 +53,7 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
     if (error != ""):
         message = "Input incorrect!"
         return 400, message, None, error
-    if returned_view_name != "":
-        message = "Join between tables is created successfully. New view \'{}\' is saved.".format(
-                returned_view_name)
-        LFU_increment(returned_view_name, mysql)
-    else:
-        message = "Join between tables is created successfully. New view" + table[0] +"view is saved."
-        LFU_increment(table[0] + "view", mysql)
+    message = "Join between tables is created successfully. New view \'{}\' is saved.".format(
+            returned_view_name)
+    LFU_increment(returned_view_name, mysql)
     return 200, message, data, None
