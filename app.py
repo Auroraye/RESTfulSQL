@@ -52,6 +52,7 @@ update_table_model = api.model("Table Model - Update",{
                         "columns": fields.String(description="Column name in comma separated list", example="Column1, Column2, Column3",required=True),
                         "operation": fields.String(description="Operation on the columns", enum=['insert', 'drop'], required=True)})
 
+
 @table_space.route("")
 class TableList(Resource):
     @api.doc(responses={200: "OK", 400: "Invalid Argument", 500: "Mapping Key Error"})
@@ -241,6 +242,7 @@ union_model = api.model("Union Model",
                              "table_name_B": fields.String(required=True),
                              "columns_B": fields.String,
                              "returned_view_name": fields.String})
+
 
 @union_space.route("")
 class Union(Resource):
