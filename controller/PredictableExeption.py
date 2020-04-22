@@ -97,3 +97,17 @@ class PredictableDuplicateConstraintNameException(PredictableException):
     def handle_me(self):
         text = "There are at least two identical key name in the 'key_names' filed, and it is '" + self.massage + "'."
         return text
+
+
+class PredictableAmbiguousColumnNameException(PredictableException):
+    def handle_me(self):
+        text = "There are at least two referenced tables having a column with the same name, " + self.massage + "."
+        return text
+
+
+class PredictableHaveNoRightException(PredictableException):
+    def handle_me(self):
+        text = "Sorry, you have no right to access the schema database, so we cannot query referencing tables for you."
+        return text
+
+

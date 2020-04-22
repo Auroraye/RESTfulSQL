@@ -99,13 +99,17 @@ tabledata_model = api.model("Tabledata Model",
                              "columns": fields.String(required=True),
                              "values": fields.String(required=True),
                              "conditions": fields.String()})
+insertdata_model = api.model("Insert Data Model",
+                             {"name": fields.String(required=True),
+                             "columns": fields.String(required=True),
+                             "values": fields.String(required=True)})
 
 
 @tabledata_space.route("")
 class TabledataList(Resource):
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
     @api.expect(tabledata_model)
-    def post(self):
+    def put(self):
         try:
             table = request.json["name"]
             column = request.json["columns"]
@@ -118,6 +122,21 @@ class TabledataList(Resource):
                 500, e.__doc__, status=e.hangdle_me(), statusCode="300")
         except Exception as e:
             raise e
+
+    @api.expect(insertdata_model)
+    def post(self):
+        try:
+            table = request.json["name"]
+            column = request.json["columns"]
+            value = request.json["values"]
+            status, message, data, error = insert_tabledata(table, column, value, mysql)
+            return {"message": message}, status
+        except PredictableException as e:
+            table_space.abort(
+               500, e.__doc__, status=e.hangdle_me(), statusCode="300")
+        except Exception as e:
+            raise e
+
 
 
 @tabledata_space.route("/<string:table_name>")
