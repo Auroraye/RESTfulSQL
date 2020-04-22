@@ -8,6 +8,7 @@ from util.LFUHelper import LFU_increment
 
 def post_group_by(table, function, rename, group, view, mysql):
     check_table_field(table)
+    check_table_field(view)
     functions = function.split(",")
     renames = rename.split(",")
     if len(functions) != len(renames):
