@@ -3,6 +3,7 @@ from MySQLdb._exceptions import OperationalError
 
 from controller.PredictableExeption import PredictableNumberOfParameterNotMatchException
 from util.ExtractSpecialArray import check_table_field
+from util.LFUHelper import LFU_increment
 
 
 def post_group_by(table, function, rename, group, view, mysql):
@@ -26,6 +27,7 @@ def post_group_by(table, function, rename, group, view, mysql):
         cur.close()
         status = 200
         message = "View " + view + " has been created."
+        LFU_increment(view, mysql)
         return status, message, None, None
     except MySQLdb._exceptions.OperationalError:
         pass
