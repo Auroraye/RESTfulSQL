@@ -101,7 +101,13 @@ class PredictableDuplicateConstraintNameException(PredictableException):
 
 class PredictableAmbiguousColumnNameException(PredictableException):
     def handle_me(self):
-        text = "There are at least two referenced tables having a column with the same name, " + self.massage + "."
+        fields = self.massage.split(",")
+        tag = ""
+        if fields[0] == "a":
+            tag = "referenced"
+        else:
+            tag = "referencing"
+        text = "There are at least two " + tag + " tables having a column with the same name, " + fields[1] + "."
         return text
 
 

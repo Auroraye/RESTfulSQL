@@ -126,6 +126,34 @@ def post_tabledata(table, column, value, mysql):
     t1, t2, data, t3 = get_foreign_key(table, mysql)
 
 
+def vanilla_post_tabledata(table, column, value, mysql):
+    check_table_field(table)
+    columns = column.split(",")
+    values = value.split(",")
+
+    if len(values) != len(columns):
+        raise PredictableNumberOfParameterNotMatchException("column,value")
+
+    command = "INSERT INTO `" + table + "` ("
+    for c in columns:
+        command += "`" + c + "`, "
+    command = command[0: -2] + ") VALUE("
+    for v in values:
+        command += typed_value(v) + ", "
+    command = command[0:-2] + ");"
+
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute(command)
+    except Exception as e:
+        cur.close()
+        raise e
+    cur.close()
+    status = 200
+    message = "Data is inserted into table " + table + "."
+    return status, message, None, None
+
+
 def typed_value(value):
     try:
         int_type = int(value)
@@ -230,7 +258,7 @@ def insert_referenced(table, col_val, uniques, mysql):
                 if meta["Field"] not in all_column:
                     all_column.append(meta["Field"])
                 elif meta["Field"] in col_val:
-                    raise PredictableAmbiguousColumnNameException(meta["Field"])
+                    raise PredictableAmbiguousColumnNameException("a," + meta["Field"])
             this_table_info = {"name": ref_t, "targets": col_to_tar, "columns": this_columns}
             all_info[ref_t] = this_table_info
 
@@ -266,6 +294,12 @@ def insert_referenced(table, col_val, uniques, mysql):
 
 
 def insert_referencing(table, col_val, uniques, mysql):
+    # The base case:
+    if len(col_val) == 0:
+        return col_val, []
+
+    array_command = []
+
     # Get the list of tables that referencing to this table.
     table_list = []
     command = "SELECT REF_NAME FROM information_schema.INNODB_SYS_FOREIGN WHERE REF_NAME == \"" + os.getenv("MYSQL_DB")
@@ -281,4 +315,11 @@ def insert_referencing(table, col_val, uniques, mysql):
         cur.close()
         raise PredictableHaveNoRightException()
 
-    # Get the foreign key columns of each referencing tables.
+    # Check margin case:
+    if len(table_list) == 0:
+        return col_val, []
+
+    # Check if key duplicated and gather more information.
+    for t in table_list:
+        t1, t2, data, t4 = get_metadata(t, mysql, os.getenv("MYSQL_DB"))
+

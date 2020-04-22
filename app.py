@@ -129,7 +129,7 @@ class TabledataList(Resource):
             table = request.json["name"]
             column = request.json["columns"]
             value = request.json["values"]
-            status, message, data, error = insert_tabledata(table, column, value, mysql)
+            status, message, data, error = vanilla_post_tabledata(table, column, value, mysql)
             return {"message": message}, status
         except PredictableException as e:
             table_space.abort(
