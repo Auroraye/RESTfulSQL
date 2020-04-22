@@ -8,7 +8,7 @@ from util.QueryHelper import *
 from util.LFUHelper import *
 from controller.MetadataController import *
 from controller.PredictableExeption import PredictableException
-from controller.TableController import create_table, delete_table
+from controller.TableController import *
 from controller.UnionController import *
 from controller.MetaController import *
 from controller.TabledataController import *
@@ -47,6 +47,10 @@ table_model = api.model("Table Model",
                          "columns": fields.String(required=True),
                          "uniques": fields.String()})
 
+update_table_model = api.model("Table Model - Update",{
+                        "name": fields.String(description="Table name", example="Table1", required=True),
+                        "columns": fields.String(description="Column name in comma separated list", example="Column1, Column2, Column3",required=True),
+                        "operation": fields.String(description="Operation on the columns", enum=['insert', 'drop'], required=True)})
 
 @table_space.route("")
 class TableList(Resource):
@@ -64,14 +68,26 @@ class TableList(Resource):
                 500, e.__doc__, status=e.handle_me(), statusCode="300")
         except Exception as e:
             raise e
+    
+    @api.doc(description="Alter table columns", responses={200: "OK", 400: "Invalid Operation"})
+    @api.expect(update_table_model)
+    def put(self):
+        table = request.json["name"]
+        columns = request.json["columns"]
+        operation = request.json["operation"]
+        status, message, data, error = update_table(table, columns, operation, mysql)
+        if (error):
+            table_space.abort(status, error)
+        return return_response(status, message)
 
 
 @table_space.route("/<string:table_name>")
 class Table(Resource):
+    @api.doc(params={"table_name": "Table name"}, description="Delete table", responses={200: "OK"})
     def delete(self, table_name):
         status, message, data, error = delete_table(table_name, mysql)
         if (error):
-            table_space.abort(500, message)
+            table_space.abort(500, error)
         return organize_return(status, message, data, error)
 # Here ends the table module
 
