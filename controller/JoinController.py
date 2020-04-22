@@ -4,7 +4,7 @@ from controller.PredictableExeption import *
 
 def get_join(mysql, tables, columns, jointype, match, returned_view_name):
     
-    table = tables.split(",")
+    table = [x.strip() for x in tables.split(',')]
     if len(tables) <= 1:
         raise PredictableJoinTableNotEnoughException()
 
@@ -13,7 +13,7 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
             message = "Number of column mismatched with number of table"
             return 400, message, None, None
         else:
-            matches = match.spilt(",")
+            matches = [x.strip() for x in match.split(',')]
 
     con = mysql.connection
     cur = con.cursor()
@@ -26,7 +26,7 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
     if (columns == ""):
             command += "* from "
     else:
-        column = columns.split(",")
+        column = [x.strip() for x in columns.split(',')]
         for col in column:
             command += col + ", "
         command = command[:-2] + " from "
