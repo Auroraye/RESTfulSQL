@@ -32,6 +32,7 @@ flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
 flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
 flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
 
+
 mysql = MySQL(flask_app)
 
 table_space = api.namespace("table", description="Manage tables")
@@ -290,7 +291,7 @@ join_model = api.model("Join Model",
 @join_space.route("")
 class Join(Resource):
     @api.expect(join_model)
-    def post(self):
+    def get(self):
         tables = request.json["tables"]
         columns = request.json["columns"]
         jointype = request.json["joinType"]
