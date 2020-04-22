@@ -1,7 +1,7 @@
 # Least Frequently Used (LFU)
 from util.QueryHelper import db_query
 
-VIEW_LIMIT = 10         # a constant limiting the max number of views for each user
+VIEW_LIMIT = 25         # a constant limiting the max number of views for each user
 
 
 def LFU_increment(view, mysql):
