@@ -5,6 +5,7 @@ from util.ExtractSpecialArray import check_table_field, extract_unique_key, chec
 from util.QueryHelper import db_query
 from controller.PredictableExeption import *
 
+
 def get_tabledata(table, columns, page, filter, sort_by, mysql):
     command = "SELECT "
     if columns:
