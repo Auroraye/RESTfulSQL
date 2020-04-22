@@ -25,7 +25,6 @@ def update_tabledata(table, column, value, condition, mysql):
     # Try to parse the table variable in order to detect exception.
     condition = condition.split(",")
 
-    # Now, we have passed all the preconditions for the table creation.
     # The next step is to communicate with the database.
 
     # The first thing to do is to turn of the autocommit variable,
