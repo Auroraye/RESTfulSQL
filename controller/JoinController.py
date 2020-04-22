@@ -50,10 +50,13 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
 
     data, error = db_query(mysql, command, None)
     if (error != ""):
+        message = "Input incorrect!"
         return 400, message, None, error
     if returned_view_name != "":
         message = "Join between tables is created successfully. New view \'{}\' is saved.".format(
                 returned_view_name)
+        LFU_increment(returned_view_name, mysql)
     else:
         message = "Join between tables is created successfully. New view" + table[0] +"view is saved."
+        LFU_increment(table[0] + "view", mysql)
     return 200, message, data, None
