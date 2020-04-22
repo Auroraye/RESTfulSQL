@@ -40,14 +40,13 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
         if (len(table) != 2):
             message = "Only two tables can be full join at one time"
             return 400, message, None, None
-        command += "CROSS JOIN " + table[1]
+        command += "CROSS JOIN " + table[1] + " "
 
     else:
         message = "Incorrect join type"
         return 400, message, None, None
 
     command = command[:-1] + ";"
-    print(command)
     data, error = db_query(mysql, command, None)
     if (error != None):
         message = "Input incorrect! " + error
