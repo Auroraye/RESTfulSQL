@@ -50,7 +50,7 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
     command += ";"
 
     data, error = db_query(mysql, command, None)
-    if (error != ""):
+    if (error != None):
         message = "Input incorrect!"
         return 400, message, None, error
     message = "Join between tables is created successfully. New view \'{}\' is saved.".format(
