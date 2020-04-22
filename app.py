@@ -280,5 +280,22 @@ class Union(Resource):
         status, message, data, error = get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B, returned_view_name)
         return organize_return_with_data(status, message, data, error)
 
+join_model = api.model("Join Model",
+                            {"tables": fields.String(required=True),
+                             "columns": fields.String(required=True),
+                             "joinType": fields.String(required=True),
+                             "match": fields.String(required=True),
+                             "returned_view_name": fields.String})
 
+@join_space.route("")
+class Join(Resource):
+    @api.expect(join_model)
+    def post(self):
+        tables = request.json["tables"]
+        columns = request.json["columns"]
+        jointype = request.json["joinType"]
+        match = request.json["match"]
+        returned_view_name = request.json["returned_view_name"]
 
+        status, message, data, error = get_join(mysql, tables, columns, jointype, match, returned_view_name)
+        return organize_return_with_data(status, message, data, error)
