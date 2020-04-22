@@ -8,7 +8,6 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
     if len(tables) <= 1:
         raise PredictableJoinTableNotEnoughException()
 
-    column = columns.split(",")
     if (jointype != "full"):
         if (len(match) != (len(table) - 1)):
             message = "Number of column mismatched with number of table"
@@ -24,13 +23,14 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
         command = "CREATE VIEW " + returned_view_name + " AS SELECT "
     else:
         command = "CREATE VIEW " + table[0] + "view AS SELECT "
-    if (len(column) == 0):
+    if (columns == ""):
             command += "* from "
     else:
+        column = columns.split(",")
         for col in column:
             command += col + ", "
         command = command[:-2] + " from "
-        command += table[0] + " "
+    command += table[0] + " "
 
     if (jointype == "inner"):              
         for count in range (1, len(table)):
