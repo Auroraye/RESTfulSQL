@@ -142,9 +142,12 @@ def vanilla_post_tabledata(table, column, value, mysql):
         command += typed_value(v) + ", "
     command = command[0:-2] + ");"
 
-    cur = mysql.connection.cursor()
+    con = mysql.connection
+    cur = con.cursor()
+    print(command)
     try:
         cur.execute(command)
+        con.commit()
     except Exception as e:
         cur.close()
         raise e
