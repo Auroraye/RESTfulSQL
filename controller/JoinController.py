@@ -15,10 +15,6 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
         else:
             matches = [x.strip() for x in match.split(',')]
 
-    con = mysql.connection
-    cur = con.cursor()
-    con.autocommit = False
-
     if (returned_view_name != ""):
         command = "CREATE VIEW " + returned_view_name + " AS SELECT "
     else:
@@ -51,21 +47,13 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
         return 400, message, None, None
 
     command += ";"
-    try:
-        cur.execute(command)
-    except Exception as e:
-        print(command)
-        con.rollback()
-        cur.close()
-        raise e
 
-    con.commit()
-    con.autocommit = True
-    cur.close()
-    status = 200
+    data, error = db_query(mysql, command, None)
+    if (error != ""):
+        return 400, message, None, error
     if returned_view_name != "":
         message = "Join between tables is created successfully. New view \'{}\' is saved.".format(
                 returned_view_name)
     else:
         message = "Join between tables is created successfully. New view" + table[0] +"view is saved."
-    return status, message, None, None
+    return 200, message, data, None
