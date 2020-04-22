@@ -38,7 +38,7 @@ tabledata_space = api.namespace("table/data", description="Manage data records")
 metadata_space = api.namespace("metadata", description="Manage metadata")
 uniquekey_space = api.namespace("metadata/uniquekey", description="Manage unique key")
 foreignkey_space = api.namespace("metadata/foreignkey", description="Manage foreign key")
-union_space = api.namespace("union", description="get a union of two table")
+union_space = api.namespace("union", description="Get a union of two table")
 
 
 # Here starts the table module.
