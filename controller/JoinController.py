@@ -9,11 +9,10 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
         raise PredictableJoinTableNotEnoughException()
 
     if (jointype != "full"):
-        if (len(match) != (len(table) - 1)):
+        matches = [x.strip() for x in match.split(',')]
+        if (matches[0] == "") or (len(matches) != (len(table) - 1)):
             message = "Number of column mismatched with number of table"
             return 400, message, None, None
-        else:
-            matches = [x.strip() for x in match.split(',')]
 
     if (returned_view_name != ""):
         command = "CREATE VIEW " + returned_view_name + " AS SELECT "
@@ -31,11 +30,11 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
 
     if (jointype == "inner"):              
         for count in range (1, len(table)):
-            command += "INNER JOIN " + table[count] + " ON " + match[count - 1]
+            command += "INNER JOIN " + table[count] + " ON " + matches[count - 1] + " "
 
     elif (jointype == "partial"):
         for count in range (1, len(table)):
-            command += "LEFT JOIN " + table[count] + " ON " + match[count - 1]
+            command += "LEFT JOIN " + table[count] + " ON " + matches[count - 1] + " "
 
     elif (jointype == "full"):
         if (len(table) != 2):
@@ -47,11 +46,11 @@ def get_join(mysql, tables, columns, jointype, match, returned_view_name):
         message = "Incorrect join type"
         return 400, message, None, None
 
-    command += ";"
-
+    command = command[:-1] + ";"
+    print(command)
     data, error = db_query(mysql, command, None)
-    if (error != ""):
-        message = "Input incorrect!"
+    if (error != None):
+        message = "Input incorrect! " + error
         return 400, message, None, error
     message = "Join between tables is created successfully. New view \'{}\' is saved.".format(
             returned_view_name)
