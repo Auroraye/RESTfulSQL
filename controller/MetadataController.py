@@ -407,13 +407,12 @@ def post_foreign_key(table, key, target, name, mysql):
         command += "`" + new_targets[i]["column"] + "`);"
         try:
             cur.execute(command)
-        except MySQLdb._exceptions.OperationalError as e:
-            status = 121
         except Exception as e:
             print(command)
             con.rollback()
             cur.close()
             raise e
+        i += 1
     con.commit()
     cur.close()
     message = "Table " + table + " has been added the specified keys."
