@@ -48,6 +48,7 @@ def get_metadata(table_name, mysql, current_database):
         message = "Failed. Error: " + error
     return status, message, data, error
 
+
 def update_column(table, column, operation, value, mysql):
     # First, check if the number of element in table is correct.
     tables = table.split(",")

@@ -304,13 +304,68 @@ column_model = api.model("Column Model",
                                                 description="The name of the table to change the metadata",
                                                 example="Table1"),
                           "columns": fields.String(required=True,
-                                                   description=""),
-                          "types": fields.String(required=True),
-                          "values": fields.String(required=True)})
+                                                   description="A list of columns in the table to change the "
+                                                               "metadata(setting), and this parameter allow "
+                                                               "duplication as long as there are same number but "
+                                                               "different type of operations apply on that column",
+                                                   example="col1,col2,col3,col3"),
+                          "types": fields.String(required=True,
+                                                 description="A list of operation to apply the column specified "
+                                                             "above, and this is an enum, the valid values are: "
+                                                             "default-to change default value of the column; type-to "
+                                                             "change the data type of the column; nullable-to specify "
+                                                             "if the column allow null value",
+                                                 example="default, type, type, nullable"),
+                          "values": fields.String(required=True,
+                                                  description="This is the list about what to do with each operation, "
+                                                              "for default, there is not requirement of value; for "
+                                                              "type operation, the valid values are int, float, "
+                                                              "double, decimal, date, string, char, and varchar; for "
+                                                              "nullable type, value yes, true and 1 are for allowing "
+                                                              "null value, and value no, false and 0 are for the "
+                                                              "opposite",
+                                                  example="something,int,varchar(100),yes")})
 
 
 @metadata_space.route("")
 class MetadataList(Resource):
+    @api.doc(description="<b> Change the setting of columns in a table </b> </br> </br> Explanation: </br> This "
+                         "function can change the metadata of a table, in which the settings of the columns in that "
+                         "table. These settings include default value, data type, and nullability. To change the "
+                         "default value, the operation is \'default\', and the valid value for this operation has no "
+                         "requirement as long as the database does not send error. To change the data type, "
+                         "the operation is \'type\', and the valid values are int(int), float, double, "
+                         "decimal(decimal), date(date), string, varchar(varchar), and char(char). To change the "
+                         "nullability, the operation is \'nullable\', and the valid values are yes, true, "
+                         "and 1 for nullable, and no, false, and 0 for not nullable. As there are three possible "
+                         "operations on a single column, therefore, in the columns parameter, the same columns can "
+                         "appear as many as three times, and the requirement is that this column must have the same "
+                         "number of different operation, otherwise, there would be error. </br> </br> Assumption: "
+                         "</br> Most importantly, the table must exists, and all the columns must be defined in the "
+                         "table. Moreover, the length of columns, operations, and values must be all equal. The "
+                         "arguments for the operation and value parameter must be a valid argument. </br> </br> "
+                         "Limitation: </br> This function only support very limited data type, namely, int, decimal, "
+                         "date, char(), and varchar().",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("name",
+               description="The table to change its metadata.",
+               type="string")
+    @api.param("columns",
+               description="A list of columns in the table to change the  metadata(setting), and this parameter allow "
+                           "duplication as long as there are same number but different type of operations apply on "
+                           "that column.",
+               type="string")
+    @api.param("operations",
+               description="A list of operation to apply the column specified above, and this is an enum, the valid "
+                           "values are: default-to change default value of the column; type-to change the data type "
+                           "of the column; nullable-to specify if the column allow null value.",
+               type="string")
+    @api.param("values",
+               description="This is the list about what to do with each operation,  for default, there is not "
+                           "requirement of value; for type operation, the valid values are int, float, double, "
+                           "decimal, date, string, char, and varchar; for nullable type, value yes, true and 1 are "
+                           "for allowing null value, and value no, false and 0 are for the opposite.",
+               type="string")
     @api.expect(column_model)
     def put(self):
         name = request.json["name"]
