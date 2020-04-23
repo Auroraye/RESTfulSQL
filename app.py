@@ -105,8 +105,8 @@ class TableList(Resource):
                          "this assumption, please go to GET Metadata function and query by \'TABLE\' to make sure the "
                          "new table name is not in the result. <li> There should not be any duplicate columns in the "
                          "columns field. <li> All elements appear in uniques field must also appear in columns field. "
-                         "</ul> </br> </br> Limitation: </br> For this function, whatever errors occur during the "
-                         "executing time, the whole process would be aborted. Hence, a very small mistake on input "
+                         "</li> </ul> </br> </br> Limitation: </br> For this function, whatever errors occur during the"
+                         " executing time, the whole process would be aborted. Hence, a very small mistake on input "
                          "can cause the whole function to fail. This can make sure the schema fits the users' need, "
                          "but it causes some inconvenience.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
@@ -367,13 +367,20 @@ class MetadataList(Resource):
                            "for allowing null value, and value no, false and 0 are for the opposite.",
                type="string")
     @api.expect(column_model)
-    def put(self):
+    def post(self):
         name = request.json["name"]
         column = request.json['columns']
         kind = request.json['types']
         value = request.json['values']
-        status, message, data, error = update_column(name, column, kind, value, mysql)
-        return organize_return(status, message, data, error)
+        try:
+            status, message, data, error = update_column(name, column, kind, value, mysql)
+            if status == 401:
+                table_space.abort(status, error)
+            return organize_return(status, message, data, error)
+        except PredictableException as e:
+            table_space.abort(e.get_status(), e.handle_me())
+        except Exception as e:
+            table_space.abort(400, e)
 
 
 @metadata_space.route("")
@@ -395,23 +402,61 @@ class Metadata(Resource):
 
 
 uniquekey_model = api.model("Unique Key Model - Post",
-                            {"name": fields.String(required=True),
-                             "keys": fields.String(required=True),
-                             "key_names": fields.String(required=True)})
-key_delete = api.model("Unique Key Model - Delete",
-                       {"name": fields.String(required=True),
-                        "key_names": fields.String(required=True)})
+                            {"name": fields.String(required=True,
+                                                   description="The name of table to modify",
+                                                   example="Table1"),
+                             "keys": fields.String(required=True,
+                                                   description="A list of columns to add unique keys(indexes), "
+                                                               "and comma is used to separate each column, "
+                                                               "and parentheses is used to group composite key",
+                                                   example="col1,(col3,col2)"),
+                             "key_names": fields.String(required=True,
+                                                        description="A list of names for the new keys",
+                                                        example="index1,index2")})
+key_delete = api.model("Key Model - Delete",
+                       {"name": fields.String(required=True,
+                                              description="The name of table to modify",
+                                              example="Table1"),
+                        "key_names": fields.String(required=True,
+                                                   description="A list of key names to drop from the table",
+                                                   example="key1,key2")})
 
 
 @uniquekey_space.route("")
 class UniqueKey(Resource):
+    @api.doc(description="<b> Add a new index to the table </b> </br> </br> Explanation: </br> This function add new "
+                         "unique keys(indexes) to the specified table. The key field is a list of columns to add new "
+                         "index, and the field key_name is a list of the names to these new indexes. </br> </br> "
+                         "Assumption: </br> The table must exist; the columns must be defined; the key names must be "
+                         "new; the length of keys and key_names must match. Any one of the requirements fails will "
+                         "cause the fail of the whole function. For composite key, all elements in a parentheses are "
+                         "count for one in term of matching the length between the keys parameter and the key_names "
+                         "parameter. </br> </br> Limitation: </br> ^_^",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("name",
+               description="The name of table to modify.",
+               type="string")
+    @api.param("keys",
+               description="A list of columns to add unique keys(indexes), and comma is used to separate each column, "
+                           "and parentheses is used to group composite key",
+               type="string")
+    @api.param("key_names",
+               description="A list of names for the new keys.",
+               type="string")
     @api.expect(uniquekey_model)
     def post(self):
         table = request.json["name"]
         key = request.json["keys"]
         name = request.json["key_names"]
-        status, message, data, error = post_unique_key(table, key, name, mysql)
-        return organize_return(status, message, data, error)
+        try:
+            status, message, data, error = post_unique_key(table, key, name, mysql)
+            if status == 401:
+                table_space.abort(status, error)
+            return organize_return(status, message, data, error)
+        except PredictableException as e:
+            table_space.abort(e.get_status(), e.handle_me())
+        except Exception as e:
+            table_space.abort(400, e)
 
     @api.expect(key_delete)
     def delete(self):

@@ -57,3 +57,7 @@ except PredictableException as e:
     table_space.abort(e.get_status(), e.handle_me())
 except Exception as e:
     table_space.abort(400, e)
+
+required=True,
+description="The name of table to modify",
+example="Table1"
