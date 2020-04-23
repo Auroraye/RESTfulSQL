@@ -103,21 +103,16 @@ def delete_tabledata(table, condition, mysql):
 
     command = "DELETE FROM `" + table +"` "
     commnad = command + "WHERE `" + condition + "`;"
-    cur = mysql.connection.cursor()
-    try:
-        cur.execute(command)
-    except Exception as e:
-        cur.close()
-        raise e
-    cur.close()
-    
-    status = 201
-    data = ""
-    message = "Row is deleted."
-    error = ""
-
-    return status, message, data, error
-
+   
+    data, error = db_query(mysql, command)
+    if error != None:
+        status = 412
+        message = "Incorrect Input! " + error
+        return status, message, None, error
+    else:
+        status = 201
+        message = "Row is deleted."
+        return status, message, None, None
 
 def post_tabledata(table, column, value, mysql):
     con, cur = None, None
