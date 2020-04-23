@@ -357,3 +357,81 @@ def insert_referencing(table, col_val, uniques, mysql):
     for t in table_list:
         t1, t2, data, t4 = get_metadata(t, mysql, database)
 
+
+def insert_upper_table(table, unknown, known, mysql):
+    t1, t2, array, t3 = get_foreign_key(table, mysql)
+
+    pass
+
+
+def insert_lower_table(table, unknown, known, mysql):
+    pass
+
+
+def insert_into_table(c, cur):
+    pass
+
+
+def insert_multiple_tables(table, column, value, mysql):
+    check_table_field(table)
+    columns = column.split(",")
+    values = value.split(",")
+
+    if len(columns) != len(values):
+        raise PredictableNumberOfParameterNotMatchException("columns,values")
+
+    t1, t2, data, t4 = get_metadata(table, mysql)
+    i = 0
+    known = []
+    unknown = []
+    while i < len(columns):
+        if check_exist_from_json(columns[i], data, "Field"):
+            known.append({"column": columns[i], "value": values[i]})
+        else:
+            unknown.append({"column": columns[i], "value": values[i]})
+        i += 1
+
+    if len(known) == 0:
+        raise PredictableException("Please have at least one valid column to fill in the value.")
+
+    command_array = []
+    if len(unknown) != 0:
+        unknown, more_commad = insert_upper_table(table, unknown, known, mysql)
+        command_array.append(more_commad)
+
+    command = "INSERT INTO `" + table + "` (" + known[0]["name"]
+    i = 1
+    while i < len(known):
+        command += ", " + known[i]["name"]
+        i += 1
+    command += ") VALUE(" + typed_value(known[0]["value"])
+    i = 1
+    while i < len(known):
+        command += ", " + typed_value(known[i]["value"])
+        i += 1
+    command += ");"
+    command_array.append(command)
+
+    if len(unknown) != 0:
+        nknown, more_commad = insert_lower_table(table, unknown, known, mysql)
+        command_array.append(more_commad)
+
+    if len(unknown) != 0:
+        raise PredictableException("There is at least one unknown columns in the field \"columns\"")
+
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+        con.autocommit = False
+    except Exception as e:
+        return 401, None, None, e
+
+    for c in command_array:
+        insert_into_table(c, cur)
+
+    cur.close()
+    status = 200
+    message = "Data is inserted into table " + table + "."
+    return status, message, None, None
+

@@ -4,6 +4,7 @@ import requests
 from controller.TableController import create_table
 from controller.TabledataController import vanilla_post_tabledata
 
+
 def upload_file(table, url, mysql):
 	if not url.endswith(".csv"):
 		return 400, None, None, "The file url is not valid. Must ends with .csv."

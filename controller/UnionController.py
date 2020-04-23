@@ -61,7 +61,7 @@ def get_union(mysql, table_name_A, columns_A, table_name_B, columns_B, returned_
                 col_str_B = col_str_B + current + ","
 
         data, error = db_query(mysql, 'SELECT {} FROM {} UNION SELECT {} FROM {};'.format(col_str_A, table_name_A, col_str_B, table_name_B))
-        if error != None:
+        if error is not None:
             message = "Some error occurs " + error
             return 400, message, None, error
         if returned_view_name != None:
