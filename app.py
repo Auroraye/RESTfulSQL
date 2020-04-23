@@ -658,15 +658,62 @@ join_model = api.model("Join Model",
                         "returned_view_name": fields.String})
 
 group_model = api.model("Group Model",
-                        {"name": fields.String(required=True),
-                         "functions": fields.String,
-                         "rename": fields.String(required=True),
-                         "group_by": fields.String,
-                         "view_name": fields.String})
+                        dict(name=fields.String(required=True,
+                                                description="The name of table to modify",
+                                                example="Table1"),
+                             functions=fields.String(required=False,
+                                                     description="A list of MySQL predefined functions with "
+                                                                 "parameters, each function shall in form of "
+                                                                 "\'function(param)\' and should be separated by "
+                                                                 "comma from other functions",
+                                                     exampe="count(col1),max(col3)"),
+                             rename=fields.String(required=False,
+                                                  description="A list of name of the result from the functions, "
+                                                              "and each name is corresponding to one function, "
+                                                              "and each rename is separated by comma",
+                                                  example="count,maximum"),
+                             group_by=fields.String(required=True,
+                                                    description="This field specifies according which data the table "
+                                                                "should be grouped",
+                                                    example="col2"),
+                             view_name=fields.String(required=True,
+                                                     description="This the the specified name for the view created by "
+                                                                 "this function",
+                                                     example="grouped1")))
 
 
 @groupby_space.route("")
 class GroupBy(Resource):
+    @api.doc(description="<b> Apply group by function to a table and create a view </b> </br> </br> Explanation: "
+                         "</br> This function applies group by function to a table and creates a temporary view to "
+                         "same the result for future usage. This function also supports calling the MySQL predefined "
+                         "functions on certain columns. </br> </br> Assumption: The table must exist, the view must "
+                         "not exist before this function, the length of functions must match the length of renames, "
+                         "all the functions must be defined and used correctly. </br> </br> Limitation: </br> This "
+                         "function and the Union function, the Join function are created based on this concept: a "
+                         "complex and long MySQL query need to be decompose to make it easier for human to "
+                         "understand. Therefore we create these three functions to create a stage view for each, "
+                         "and the user can do more queries on these temporary views to accomplish the complex query. "
+                         "This mechanism make the query easy to understand, but it requires more simple queries to "
+                         "accomplish the same goal.",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("name",
+               description="The name of table to modify.",
+               type="string")
+    @api.param("functions",
+               description="A list of MySQL predefined functions with parameters, each function shall in form of "
+                           "\'function(param)\' and should be separated by comma from other functions.",
+               type="string")
+    @api.param("renames",
+               description="A list of name of the result from the functions, and each name is corresponding to one "
+                           "function, and each rename is separated by comma.",
+               type="string")
+    @api.param("group_by",
+               description="This field specifies according which data the table should be grouped.",
+               type="string")
+    @api.param("view_name",
+               description="This the the specified name for the view created by this function.",
+               type="string")
     @api.expect(group_model)
     def post(self):
         table = request.json["name"]
@@ -677,11 +724,13 @@ class GroupBy(Resource):
 
         try:
             status, message, data, error = post_group_by(table, function, new_name, groupby, view, mysql)
+            if status == 401:
+                table_space.abort(status, error)
             return organize_return(status, message, data, error)
         except PredictableException as e:
-            return e.handle_me()
+            table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
-            raise e
+            table_space.abort(400, e)
 
 
 @join_space.route("")
