@@ -82,11 +82,13 @@ def create_table(table, column, unique, mysql):
 
 
 def delete_table(table_name, mysql):
-    status = 200
-    message = "Table {} is deleted".format(table_name)
     result, error = db_query(mysql, "DROP TABLE " + table_name)
-
-    return status, message, None, error
+    if (error == "FAILED_TO_CONNECT"):
+        return 401, None, None, "Please connect to a database using the /connect endpoint."
+    elif (error):
+        return 400, None, None, error
+    else:
+        return 200, "Table {} is deleted.".format(table_name), result, None
 
 
 def update_table(table, columns, operation, mysql):

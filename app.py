@@ -3,7 +3,6 @@ from flask_mysqldb import MySQL
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
 
-from controller.GroupController import post_group_by
 from util.Result import *
 from util.QueryHelper import *
 from util.LFUHelper import *
@@ -14,26 +13,13 @@ from controller.UnionController import *
 from controller.MetaController import *
 from controller.TabledataController import *
 from controller.JoinController import *
-
-# Import env variable
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from controller.GroupController import post_group_by
 
 flask_app = Flask(__name__)
 api = Api(app=flask_app,
           version="1.0",
           title="RESTfulSQL API",
           description="A Restful API Wrapper for MYSQL")
-
-# flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
-# flask_app.config["MYSQL_PORT"] = 3306
-# flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
-# flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
-# flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
-
-
 
 mysql = MySQL(flask_app)
 
@@ -54,13 +40,14 @@ connect_model = api.model("Connection Model",
                          "password": fields.String(description="Password", example="password", required=True),
                          "database": fields.String(description="The database name", example="database", required=True)})
 
+# Here starts the connect module.
 @connect_space.route("")
 class Connect(Resource):
     @api.doc(description="<b>Connect to a database.</b>"
         + "<br/> <br/> Explanation: <br/> Connect to a local or remote database by passing in all the required information. A successful connection is required to use any of the API endpoints."
         + "<br/> <br/> Assumption: <br/> The user have created a database before using the API. "
         + "<br/> <br/> Limitation: <br/> Create database is not supported currently.",
-        responses={200: "OK", 400: "Failed to connect to the database"})
+        responses={200: "OK", 401: "Failed to connect to the database"})
     @api.expect(connect_model)
     def post(self):
         flask_app.config["MYSQL_HOST"] = request.json["host"]
@@ -71,10 +58,12 @@ class Connect(Resource):
 
         result, error = db_query(mysql, "SHOW STATUS")
         if (error):
-            table_space.abort(400, result[8:-2])
+            table_space.abort(401, result[8:-2])
         else:
             return return_response(200, "Successfully connected to the database!")
-            
+# Here ends the connect module
+
+
 # Here starts the table module.
 table_model = api.model("Table Model",
                         {"name": fields.String(required=True),
@@ -119,14 +108,16 @@ class TableList(Resource):
 
 @table_space.route("/<string:table_name>")
 class Table(Resource):
-    @api.doc(params={"table_name": "Table name"}, description="Delete table", responses={200: "OK"})
+    @api.doc(description="<b>Delete an existing table from the database.</b>"
+        + "<br/> <br/> Explanation: <br/> Delete all the data inside of an existing table and remove the table itself."
+        + "<br/> <br/> Assumption: <br/> The table is already exist in the database.",
+        params={"table_name": "An existing table name."},
+        responses={200: "OK", 400: "The table does not exist in the database", 401: "Unauthorized access"})
     def delete(self, table_name):
         status, message, data, error = delete_table(table_name, mysql)
         if (error):
-            table_space.abort(500, error)
-        return organize_return(status, message, data, error)
-
-
+            table_space.abort(status, error)
+        return return_response(status, message)
 # Here ends the table module
 
 
@@ -206,8 +197,6 @@ class Tabledata(Resource):
         condition = request.json["condition"]
         status, message, data, error = delete_tabledata(table_name, condition, mysql)
         return {"message": message}, status
-
-
 # Here ends the table data module
 
 
@@ -309,8 +298,6 @@ class UniqueKeyList(Resource):
     def get(self, table_name):
         status, message, data, error = get_foreign_key(table_name, mysql)
         return organize_return_with_data(status, message, data, error)
-
-
 # Here ends the metadata module
 
 
