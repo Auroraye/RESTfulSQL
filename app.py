@@ -3,6 +3,7 @@ from flask_mysqldb import MySQL
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
 
+from controller.FilterController import post_filter
 from util.Result import *
 from util.QueryHelper import *
 from util.LFUHelper import *
@@ -33,6 +34,7 @@ foreignkey_space = api.namespace("metadata/foreignkey", description="Manage fore
 union_space = api.namespace("union", description="Get a union of two table")
 groupby_space = api.namespace("groupby", description="Apply grouping and statistic functions to a table")
 join_space = api.namespace("join", description="Get a join of tables")
+filter_space = api.namespace("filter", description="Create a view for filter a table")
 upload_space = api.namespace("upload", description="Upload a file to the database")
 
 connect_model = api.model("Connection Model",
@@ -839,3 +841,61 @@ class Upload(Resource):
             return return_response(status, message, None, error)
         else:
             return return_response(201, "Table created")
+
+
+filter_model = api.model("Filter Model",
+                         {"name": fields.String(required=True,
+                                                description="The name of table to modify",
+                                                example="Table1"),
+                          "columns": fields.String(required=True,
+                                                   description="A list of columns that need to be tested in the "
+                                                               "conditions, and duplication is allowed. The columns "
+                                                               "should be separated by comma",
+                                                   example="col1,col2,col2"),
+                          "operators": fields.String(required=True,
+                                                     description="A list of operators to apply to the columns, "
+                                                                 "and the valid operator includes =, >, <, >=, <=, "
+                                                                 "!=, BETWEEN, LIKE, IN and negation of them. To test "
+                                                                 "the negation of the condition, please add ~ symbol "
+                                                                 "before the operator. The operators should be "
+                                                                 "separated by comma",
+                                                     example="LIKE,<,~IN"),
+                          "conditions": fields.String(required=True,
+                                                      description="A list of conditions that works with each "
+                                                                  "operators. For the condition of IN and BETWEEN "
+                                                                  "operator should be grouped by parentheses",
+                                                      example="%ello,10,(3,5,11)"),
+                          "type": fields.String(required=True,
+                                                description="Define how to conjunct each conditions, valid values are "
+                                                            "AND, OR, XOR",
+                                                example="AND"),
+                          "view_name": fields.String(required=True,
+                                                     description="This the the specified name for the view created by "
+                                                                 "this function",
+                                                     example="filter1")})
+
+
+@filter_space.route("")
+class Filter(Resource):
+    @api.doc(description="",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.expect(filter_model)
+    def post(self):
+        table = request.json["name"]
+        column = request.json["columns"]
+        operator = request.json["operators"]
+        condition = request.json["conditions"]
+        atype = request.json["type"]
+        view = request.json["view_name"]
+
+        try:
+            status, message, data, error = post_filter(table, column, operator, condition, atype, view, mysql)
+            if status == 401:
+                table_space.abort(status, error)
+            return organize_return(status, message, data, error)
+        except PredictableException as e:
+            table_space.abort(e.get_status(), e.handle_me())
+        except Exception as e:
+            raise e
+            table_space.abort(400, e)
+        pass

@@ -114,6 +114,7 @@ def delete_tabledata(table, condition, mysql):
         message = "Row is deleted."
         return status, message, None, None
 
+
 def post_tabledata(table, column, value, mysql):
     con, cur = None, None
     try:

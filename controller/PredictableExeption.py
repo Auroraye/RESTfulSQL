@@ -43,6 +43,12 @@ class PredictableInvalidArgumentException(PredictableException):
         elif self.massage == "8":
             text = "There is a wrong format in the field of 'targets'."
             return text
+        elif self.massage == "9":
+            text = "There is an unknown type for condition in the field of 'type'."
+            return text
+        elif self.massage == "10":
+            text = "Please define at least one condition."
+            return text
         else:
             return self.massage
 
