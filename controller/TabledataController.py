@@ -69,18 +69,6 @@ def update_tabledata(table, column, value, condition, mysql):
     if len(values) != len(columns):
         raise PredictableColumnNumberMismatchException(elem)
 
-    # Try to parse the table variable in order to detect exception.
-    # condition = condition.split(",")
-
-    # Now, we have passed all the preconditions for the table creation.
-    # The next step is to communicate with the database.
-
-    # The first thing to do is to turn of the autocommit variable,
-    # and start a new transaction.
-    con = mysql.connection
-    cur = con.cursor()
-    con.autocommit = False
-
     # Now, we can start to communicate with the database.
     command = "UPDATE `" + table + "` "
     command = command + "SET "
@@ -93,20 +81,16 @@ def update_tabledata(table, column, value, condition, mysql):
         command = command + "Where " + condition + ";"
     else:
         command = command + ";"
-    try:
-        cur.execute(command)
-    except Exception as e:
-        print(command)
-        con.rollback()
-        cur.close()
-        raise e
-
-    con.commit()
-    con.autocommit = True
-    cur.close()
-    status = 200
-    message = "Table " + table + " is updated."
-    return status, message, None, None
+    
+    data, error = db_query(mysql, command)
+    if error != None:
+        status = 412
+        message = "Incorrect Input! " + error
+        return status, message, None, error
+    else:
+        status = 201
+        message = "Table " + table + " is updated."
+        return status, message, None, None
 
 
 def delete_tabledata(table, condition, mysql):
@@ -127,7 +111,7 @@ def delete_tabledata(table, condition, mysql):
         raise e
     cur.close()
     
-    status = 200
+    status = 201
     data = ""
     message = "Row is deleted."
     error = ""
