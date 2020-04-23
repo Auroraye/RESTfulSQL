@@ -55,8 +55,6 @@ def update_tabledata(table, column, value, condition, mysql):
         raise PredictableInvalidArgumentException("1")
     elif len(tables) > 1:
         raise PredictableInvalidArgumentException("6")
-
-    check_table_field(tables[0])
     
     # Parse the list of columns from string into array.
     columns = column.split(",")
@@ -118,7 +116,6 @@ def delete_tabledata(table, condition, mysql):
         raise PredictableInvalidArgumentException("1")
     elif len(tables) > 1:
         raise PredictableInvalidArgumentException("6")
-    check_table_field(tables[0])
 
     command = "DELETE FROM `" + table +"` "
     commnad = command + "WHERE `" + condition + "`;"
