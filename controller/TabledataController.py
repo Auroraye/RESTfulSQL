@@ -33,6 +33,8 @@ def get_tabledata(table, columns, page, filter, sort_by, mysql):
     result, error = db_query(mysql, command)
     if (error == "FAILED_TO_CONNECT"):
         return 400, None, None, "Please connect to a database using the /connect endpoint"
+    elif (error):
+        return 400, None, None, error
     else:
         return 200, "Success", result, None
 

@@ -47,16 +47,20 @@ union_space = api.namespace("union", description="Get a union of two table")
 groupby_space = api.namespace("groupby", description="Apply grouping and statistic functions to a table")
 join_space = api.namespace("join", description="Get a join of tables")
 
-connect_model = api.model("Connect Model",
-                        {"host": fields.String(description="database host", example="localhost", required=True),
-                         "port": fields.Integer(description="database port", example=3306, required=True),
-                         "username": fields.String(description="database username", example="root", required=True),
-                         "password": fields.String(description="database password", example="password", required=True),
-                         "database": fields.String(description="database name", example="database", required=True)})
+connect_model = api.model("Connection Model",
+                        {"host": fields.String(description="The server name", example="localhost", required=True),
+                         "port": fields.Integer(description="The database port", example=3306, required=True),
+                         "username": fields.String(description="Username", example="root", required=True),
+                         "password": fields.String(description="Password", example="password", required=True),
+                         "database": fields.String(description="The database name", example="database", required=True)})
 
 @connect_space.route("")
 class Connect(Resource):
-    @api.doc(responses={200: "OK", 400: "Failed to connect to database"})
+    @api.doc(description="<b>Connect to a database.</b>"
+        + "<br/> <br/> Explanation: <br/> Connect to a local or remote database by passing in all the required information. A successful connection is required to use any of the API endpoints."
+        + "<br/> <br/> Assumption: <br/> The user have created a database before using the API. "
+        + "<br/> <br/> Limitation: <br/> Create database is not supported currently.",
+        responses={200: "OK", 400: "Failed to connect to the database"})
     @api.expect(connect_model)
     def post(self):
         flask_app.config["MYSQL_HOST"] = request.json["host"]
@@ -65,14 +69,12 @@ class Connect(Resource):
         flask_app.config["MYSQL_PASSWORD"] = request.json["password"]
         flask_app.config["MYSQL_DB"] = request.json["database"]
 
-        result, error = db_query(mysql, "show status")
+        result, error = db_query(mysql, "SHOW STATUS")
         if (error):
-            table_space.abort(400, error)
-            # return {"error": error}, 400
+            table_space.abort(400, result[8:-2])
         else:
-        # status, message, data, error = create_table(table, column, unique, mysql)
-            return {"message": "Connected to database!"}, 200
-
+            return return_response(200, "Successfully connected to the database!")
+            
 # Here starts the table module.
 table_model = api.model("Table Model",
                         {"name": fields.String(required=True),
