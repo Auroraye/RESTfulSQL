@@ -97,7 +97,7 @@ class TableList(Resource):
     @api.doc(description="<b>Insert or remove columns in an exisiting table.</b>"
         + "<br/> <br/> Explanation: <br/> Insert or remove table columns by specifying the column names in a comma separated list. The data type of the new insert column is VARCHAR(200) by default."
         + "<br/> <br/> Assumption: <br/> The table must exist in the database. To insert an column, the column name does not exist in the table. To remove an column, the column name exist in the table."
-        + "<br/> <br/> Limitation: <br/> The default data type is VARCHAR(200), but the data type can be changed using UPDATE /metadata endpoint.",
+        + "<br/> <br/> Limitation: <br/> The default data type is VARCHAR(200), but the data type can be changed using the UPDATE /metadata endpoint.",
         responses={200: "OK", 400: "Invalid Operation", 401: "Unauthorized access"})
     @api.expect(update_table_model)
     def put(self):
