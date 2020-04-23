@@ -773,7 +773,7 @@ class Join(Resource):
                          "same the result for future usage.</br> </br> Assumption: The table must exist, the view must "
                          "not exist before this function, the length of functions must match the length of renames, "
                          "all the functions must be defined and used correctly. </br> </br> Limitation: </br> This "
-                         "function and the Union function, the Join function are created based on this concept: a "
+                         "function and the Union function, the groupby function are created based on this concept: a "
                          "complex and long MySQL query need to be decompose to make it easier for human to "
                          "understand. Therefore we create these three functions to create a stage view for each, "
                          "and the user can do more queries on these temporary views to accomplish the complex query. "
