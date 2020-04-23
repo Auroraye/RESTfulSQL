@@ -82,20 +82,22 @@ def create_table(table, column, unique, mysql):
 
 
 def delete_table(table_name, mysql):
-    status = 200
-    message = "Table {} is deleted".format(table_name)
     result, error = db_query(mysql, "DROP TABLE " + table_name)
-
-    return status, message, None, error
+    if (error == "FAILED_TO_CONNECT"):
+        return 401, None, None, "Please connect to a database using the /connect endpoint."
+    elif (error):
+        return 400, None, None, error
+    else:
+        return 200, "Table {} is deleted.".format(table_name), result, None
 
 
 def update_table(table, columns, operation, mysql):
-    if operation != "insert" or operation != "drop":
+    if operation != "insert" and operation != "drop":
         return 400, None, None, "Invalid Operation"
     
     command = "ALTER TABLE " + table
-    columns = columns.split(",")
-    for column_name in columns:
+    split_columns = columns.split(",")
+    for column_name in split_columns:
         if operation == "insert":
             command += " ADD " + column_name + " VARCHAR(200),"
         else:
@@ -103,4 +105,13 @@ def update_table(table, columns, operation, mysql):
     command = command[:-1]
     result, error = db_query(mysql, command)
 
-    return 200, "Success", None, None
+    message = "Successfully inserted the columns: " + columns + "."
+    if operation == "drop":
+        message = "Successfully dropped the columns: " + columns + "."
+
+    if (error == "FAILED_TO_CONNECT"):
+        return 401, None, None, "Please connect to a database using the /connect endpoint."
+    elif (error):
+        return 400, None, None, error
+    else:
+        return 200, message, result, None

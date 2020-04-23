@@ -31,7 +31,12 @@ def get_tabledata(table, columns, page, filter, sort_by, mysql):
     command += " LIMIT 250 OFFSET " + str((int(page) - 1) * 250)
 
     result, error = db_query(mysql, command)
-    return 200, "Success", result, None
+    if (error == "FAILED_TO_CONNECT"):
+        return 401, None, None, "Please connect to a database using the /connect endpoint."
+    elif (error):
+        return 400, None, None, error
+    else:
+        return 200, "Success", result, None
 
 
 def update_tabledata(table, column, value, condition, mysql):

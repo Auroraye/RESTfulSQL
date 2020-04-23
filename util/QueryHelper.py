@@ -9,8 +9,12 @@ def db_query(mysql, query, args=None):
     :rtype: (tuple, str)
     """
 
-    cur = mysql.connection.cursor()
     result, error = (), None
+    try:
+        cur = mysql.connection.cursor()
+    except Exception as e:
+        return str(e), "FAILED_TO_CONNECT"
+    
     try:
         cur.execute(query, args)
         result = cur.fetchall()

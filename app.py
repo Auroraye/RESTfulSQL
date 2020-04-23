@@ -3,7 +3,6 @@ from flask_mysqldb import MySQL
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
 
-from controller.GroupController import post_group_by
 from util.Result import *
 from util.QueryHelper import *
 from util.LFUHelper import *
@@ -14,12 +13,7 @@ from controller.UnionController import *
 from controller.MetaController import *
 from controller.TabledataController import *
 from controller.JoinController import *
-
-# Import env variable
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from controller.GroupController import post_group_by
 
 flask_app = Flask(__name__)
 api = Api(app=flask_app,
@@ -27,16 +21,9 @@ api = Api(app=flask_app,
           title="RESTfulSQL API",
           description="A Restful API Wrapper for MYSQL")
 
-flask_app.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST")
-flask_app.config["MYSQL_PORT"] = 3306
-flask_app.config["MYSQL_USER"] = os.getenv("MYSQL_USER")
-flask_app.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD")
-flask_app.config["MYSQL_DB"] = os.getenv("MYSQL_DB")
-
-
-
 mysql = MySQL(flask_app)
 
+connect_space = api.namespace("connect", description="Connect to database")
 table_space = api.namespace("table", description="Manage tables")
 tabledata_space = api.namespace("table/data", description="Manage data records")
 metadata_space = api.namespace("metadata", description="Manage metadata")
@@ -46,6 +33,37 @@ union_space = api.namespace("union", description="Get a union of two table")
 groupby_space = api.namespace("groupby", description="Apply grouping and statistic functions to a table")
 join_space = api.namespace("join", description="Get a join of tables")
 
+connect_model = api.model("Connection Model",
+                        {"host": fields.String(description="The server name", example="localhost", required=True),
+                         "port": fields.Integer(description="The database port", example=3306, required=True),
+                         "username": fields.String(description="Username", example="root", required=True),
+                         "password": fields.String(description="Password", example="password", required=True),
+                         "database": fields.String(description="The database name", example="database", required=True)})
+
+# Here starts the connect module.
+@connect_space.route("")
+class Connect(Resource):
+    @api.doc(description="<b>Connect to a database.</b>"
+        + "<br/> <br/> Explanation: <br/> Connect to a local or remote database by passing in all the required information. A successful connection is required to use any of the API endpoints."
+        + "<br/> <br/> Assumption: <br/> The user have created a database before using the API. "
+        + "<br/> <br/> Limitation: <br/> Create database is not supported currently.",
+        responses={200: "OK", 401: "Failed to connect to the database"})
+    @api.expect(connect_model)
+    def post(self):
+        flask_app.config["MYSQL_HOST"] = request.json["host"]
+        flask_app.config["MYSQL_PORT"] = int(request.json["port"])
+        flask_app.config["MYSQL_USER"] = request.json["username"]
+        flask_app.config["MYSQL_PASSWORD"] = request.json["password"]
+        flask_app.config["MYSQL_DB"] = request.json["database"]
+
+        result, error = db_query(mysql, "SHOW STATUS")
+        if (error):
+            table_space.abort(401, result[8:-2])
+        else:
+            return return_response(200, "Successfully connected to the database!")
+# Here ends the connect module
+
+
 # Here starts the table module.
 table_model = api.model("Table Model",
                         {"name": fields.String(required=True),
@@ -53,10 +71,10 @@ table_model = api.model("Table Model",
                          "uniques": fields.String()})
 
 update_table_model = api.model("Table Model - Update", {
-    "name": fields.String(description="Table name", example="Table1", required=True),
-    "columns": fields.String(description="Column name in comma separated list", example="Column1, Column2, Column3",
+    "name": fields.String(description="An exisiting table name", example="Table1", required=True),
+    "columns": fields.String(description="A list of column names", example="Column1, Column2, Column3",
                              required=True),
-    "operation": fields.String(description="Operation on the columns", enum=['insert', 'drop'], required=True)})
+    "operation": fields.String(description="Operation mode: insert, drop. If the mode is insert, the columns will be added to the table. If the mode is drop, the columns will be removed from the table", enum=['insert', 'drop'], required=True)})
 
 
 @table_space.route("")
@@ -76,12 +94,16 @@ class TableList(Resource):
         except Exception as e:
             raise e
 
-    @api.doc(description="Alter table columns", responses={200: "OK", 400: "Invalid Operation"})
+    @api.doc(description="<b>Insert or remove columns in an exisiting table.</b>"
+        + "<br/> <br/> Explanation: <br/> Insert or remove table columns by specifying the column names in a comma separated list. The data type of the new insert column is VARCHAR(200) by default."
+        + "<br/> <br/> Assumption: <br/> The table must exist in the database. To insert an column, the column name does not exist in the table. To remove an column, the column name exist in the table."
+        + "<br/> <br/> Limitation: <br/> The default data type is VARCHAR(200), but the data type can be changed using the UPDATE /metadata endpoint.",
+        responses={200: "OK", 400: "Invalid Operation", 401: "Unauthorized access"})
     @api.expect(update_table_model)
     def put(self):
         table = request.json["name"]
         columns = request.json["columns"]
-        operation = request.json["operation"]
+        operation = request.json["operation"].lower()
         status, message, data, error = update_table(table, columns, operation, mysql)
         if (error):
             table_space.abort(status, error)
@@ -90,14 +112,16 @@ class TableList(Resource):
 
 @table_space.route("/<string:table_name>")
 class Table(Resource):
-    @api.doc(params={"table_name": "Table name"}, description="Delete table", responses={200: "OK"})
+    @api.doc(description="<b>Delete an existing table from the database.</b>"
+        + "<br/> <br/> Explanation: <br/> Delete all the data inside of an existing table and remove the table itself."
+        + "<br/> <br/> Assumption: <br/> The table is already exist in the database.",
+        params={"table_name": "An existing table name."},
+        responses={200: "OK", 400: "The table does not exist in the database", 401: "Unauthorized access"})
     def delete(self, table_name):
         status, message, data, error = delete_table(table_name, mysql)
         if (error):
-            table_space.abort(500, error)
-        return organize_return(status, message, data, error)
-
-
+            table_space.abort(status, error)
+        return return_response(status, message)
 # Here ends the table module
 
 
@@ -133,8 +157,11 @@ class TabledataList(Resource):
         filter = request.args["filter"] if "filter" in request.args else None
         sort_by = request.args["sort_by"] if "sort_by" in request.args else None
         status, message, data, error = get_tabledata(name, columns, page, filter, sort_by, mysql)
-
-        return return_response(status, message, data)
+        if (error):
+            table_space.abort(400, error)
+            return error, 400
+        else:
+            return return_response(status, message, data)
 
     @api.doc(responses={200: "OK", 400: "Invalid Argument"})
     @api.expect(tabledata_model)
@@ -174,8 +201,6 @@ class Tabledata(Resource):
         condition = request.json["condition"]
         status, message, data, error = delete_tabledata(table_name, condition, mysql)
         return {"message": message}, status
-
-
 # Here ends the table data module
 
 
@@ -277,8 +302,6 @@ class UniqueKeyList(Resource):
     def get(self, table_name):
         status, message, data, error = get_foreign_key(table_name, mysql)
         return organize_return_with_data(status, message, data, error)
-
-
 # Here ends the metadata module
 
 
