@@ -1,9 +1,13 @@
 class PredictableException(Exception):
     def __init__(self, input):
         self.massage = input
+        self.code = 412
 
     def handle_me(self):
         return self.massage
+
+    def get_status(self):
+        return self.code
 
 
 class PredictableUnknownKeyException(PredictableException):

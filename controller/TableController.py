@@ -42,8 +42,12 @@ def create_table(table, column, unique, mysql):
 
     # The first thing to do is to turn of the autocommit variable,
     # and start a new transaction.
-    con = mysql.connection
-    cur = con.cursor()
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
     con.autocommit = False
 
     # Now, we can start to communicate with the database.
@@ -76,7 +80,7 @@ def create_table(table, column, unique, mysql):
     con.commit()
     con.autocommit = True
     cur.close()
-    status = 200
+    status = 201
     message = "Table " + table + " is created."
     return status, message, None, None
 
