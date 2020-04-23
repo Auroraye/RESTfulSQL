@@ -14,6 +14,7 @@ from controller.MetaController import *
 from controller.TabledataController import *
 from controller.JoinController import *
 from controller.GroupController import post_group_by
+from controller.UploadController import *
 
 flask_app = Flask(__name__)
 api = Api(app=flask_app,
@@ -32,6 +33,7 @@ foreignkey_space = api.namespace("metadata/foreignkey", description="Manage fore
 union_space = api.namespace("union", description="Get a union of two table")
 groupby_space = api.namespace("groupby", description="Apply grouping and statistic functions to a table")
 join_space = api.namespace("join", description="Get a join of tables")
+upload_space = api.namespace("upload", description="Upload a file to the database")
 
 connect_model = api.model("Connection Model",
                           {"host": fields.String(description="The server name", example="localhost", required=True),
@@ -102,12 +104,12 @@ class TableList(Resource):
                          "composite indexes. </br> </br> Assumption: </br> There are some pre-conditions when to use "
                          "this function. <ul> <li> The table name must not exist in the database before, to check "
                          "this assumption, please go to GET Metadata function and query by \'TABLE\' to make sure the "
-                         "new table name is not in the result. <li> There should not be any duplicate columns in the "
+                         "new table name is not in the result.</li> <li> There should not be any duplicate columns in the "
                          "columns field. <li> All elements appear in uniques field must also appear in columns field. "
-                         "</li> </ul> </br> </br> Limitation: </br> For this function, whatever errors occur during the"
+                         "</li> </ul> </br> </br> <p> Limitation: </br> For this function, whatever errors occur during the"
                          " executing time, the whole process would be aborted. Hence, a very small mistake on input "
                          "can cause the whole function to fail. This can make sure the schema fits the users' need, "
-                         "but it causes some inconvenience.",
+                         "but it causes some inconvenience.</p>",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.expect(table_model)
     @api.param("name",
@@ -739,3 +741,26 @@ class Join(Resource):
 
         status, message, data, error = get_join(mysql, tables, columns, jointype, match, returned_view_name)
         return organize_return(status, message, data, error)
+
+
+upload_model = api.model("Upload Model",
+                       {"name": fields.String(description="The table name", example="Table1", required=True),
+                        "csv": fields.String(description="Url of an csv file", example="http://gatech.edu/example.csv", required=True)})
+
+@upload_space.route("")
+class Upload(Resource):
+    @api.doc(description="<b> Upload a csv file to the database </b> </br> </br> Explanation: </br> "
+                         "This function process the uploaded csv by creating a table with the table name and "
+                         "inserting each row to the table. The column name is the header of the csv. </br> </br> "
+                         "Assumption: </br> The table name must not exist in the database and the file url must "
+                         "be valid. </br> </br> Limitation: </br> The file url must ends with .csv format",
+             responses={201: "Created", 400: "Failed to download the csv file", 401: "Unauthorized access"})
+    @api.expect(upload_model)
+    def post(self):
+        name = request.json["name"]
+        csv = request.json["csv"]
+        status, message, data, error = upload_file(name, csv, mysql)
+        if (error):
+            return return_response(status, message, None, error)
+        else:
+            return return_response(201, "Table created")
