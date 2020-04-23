@@ -62,6 +62,7 @@ class Connect(Resource):
         flask_app.config["MYSQL_USER"] = request.json["username"]
         flask_app.config["MYSQL_PASSWORD"] = request.json["password"]
         flask_app.config["MYSQL_DB"] = request.json["database"]
+        database = request.json["database"]
 
         result, error = db_query(mysql, "SHOW STATUS")
         if (error):
@@ -896,6 +897,5 @@ class Filter(Resource):
         except PredictableException as e:
             table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
-            raise e
             table_space.abort(400, e)
         pass

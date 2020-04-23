@@ -186,7 +186,7 @@ def post_unique_key(table, key, name, mysql):
     if len(uniques) != len(names):
         raise PredictableNumberOfParameterNotMatchException("keys,key_names")
 
-    status, message, table_structure, error = get_metadata(table, mysql, os.getenv("MYSQL_DB"))
+    status, message, table_structure, error = get_metadata(table, mysql)
 
     # Check the validation of each key.
     for k in uniques:

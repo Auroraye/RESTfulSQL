@@ -2,7 +2,7 @@ import os
 import json
 
 from controller.MetadataController import get_foreign_key, get_metadata
-from util.ExtractSpecialArray import check_table_field, extract_unique_key, check_exist_from_json
+from util.ExtractSpecialArray import check_table_field, extract_unique_key, check_exist_from_json, database
 from util.QueryHelper import db_query
 from controller.PredictableExeption import *
 
@@ -284,7 +284,7 @@ def insert_referenced(table, col_val, uniques, mysql):
                         if p_targets[j] not in col_to_tar:
                             col_to_tar[p_targets[j]] = p_columns[j]
             # Collect other columns.
-            t1, t2, tem_data, t3 = get_metadata(ref_t, mysql, os.getenv("MYSQL_DB"))
+            t1, t2, tem_data, t3 = get_metadata(ref_t, mysql)
             this_columns = []
             for meta in tem_data:
                 if meta["Field"] not in col_to_tar:
@@ -336,14 +336,14 @@ def insert_referencing(table, col_val, uniques, mysql):
 
     # Get the list of tables that referencing to this table.
     table_list = []
-    command = "SELECT REF_NAME FROM information_schema.INNODB_SYS_FOREIGN WHERE REF_NAME == \"" + os.getenv("MYSQL_DB")
+    command = "SELECT REF_NAME FROM information_schema.INNODB_SYS_FOREIGN WHERE REF_NAME == \"" + database
     command += "/" + table + "\";"
     cur = mysql.connection.cursor()
     try:
         cur.execute(command)
         result = cur.fechall()
         for i in result:
-            table_list.append(i[0][len(os.getenv("MYSQL_DB")) + 1:])
+            table_list.append(i[0][len(database) + 1:])
         cur.close()
     except Exception as e:
         cur.close()
@@ -355,5 +355,5 @@ def insert_referencing(table, col_val, uniques, mysql):
 
     # Check if key duplicated and gather more information.
     for t in table_list:
-        t1, t2, data, t4 = get_metadata(t, mysql, os.getenv("MYSQL_DB"))
+        t1, t2, data, t4 = get_metadata(t, mysql, database)
 

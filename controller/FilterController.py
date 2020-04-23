@@ -25,7 +25,7 @@ def post_filter(table, column, operator, condition, atype, view, mysql):
     if atype not in ["AND", "OR", "XOR"]:
         raise PredictableInvalidArgumentException("9")
 
-    t1, t2, array, t3 = get_metadata(table, mysql, os.getenv("MYSQL_DB"))
+    t1, t2, array, t3 = get_metadata(table, mysql)
     for c in columns:
         if not check_exist_from_json(c, array, "Field"):
             raise PredictableUnknownKeyException(c)
