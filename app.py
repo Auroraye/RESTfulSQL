@@ -591,9 +591,26 @@ class ForeignKey(Resource):
 
 @foreignkey_space.route("/<string:table_name>")
 class UniqueKeyList(Resource):
+    @api.doc(description="<b> Get a list of foreign keys(references) of a table </b> </br> </br> Explanation: </br> "
+                         "This function returns a list of foreign keys(references) that is defined in the specified "
+                         "table. If there is no reference on that table, then it returns null value. </br> </br> "
+                         "Assumption: </br> The table must exist in the database. </br> </br> Limitation: </br> This "
+                         "function can only return the foreign keys that this table has to reference to other table, "
+                         "but not the foreign keys that the other tables have to reference to this table.",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("table_name",
+               description="The table to be queried.",
+               type="string")
     def get(self, table_name):
-        status, message, data, error = get_foreign_key(table_name, mysql)
-        return organize_return_with_data(status, message, data, error)
+        try:
+            status, message, data, error = get_foreign_key(table_name, mysql)
+            if status == 401:
+                table_space.abort(status, error)
+            return organize_return_with_data(status, message, data, error)
+        except PredictableException as e:
+            table_space.abort(e.get_status(), e.handle_me())
+        except Exception as e:
+            table_space.abort(400, e)
 
 
 # Here ends the metadata module
