@@ -245,14 +245,14 @@ class TabledataList(Resource):
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.param("name",
                description="The name of table to update data",
-               type="string", required=True)
+               type="string")
     @api.param("columns",
                description="A list of columns to update data, this also specify the order of the values",
-               type="string", required=True)
+               type="string")
     @api.param("values",
                description="A list of values to be updated into the table, and it has one-to-one correspondence with "
                            "columns.",
-               type="string", required=True)
+               type="string")
     @api.param("condition",
                description="A condition to be considered while updating the record for the table ",
                type="string")
@@ -784,22 +784,22 @@ class Join(Resource):
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.param("name",
                description="The name of tables to modify.",
-               type="string",required = True)
+               type="string")
     @api.param("columns",
                description="A list of columns selected to be modified",
-               type="string",required = True)
+               type="string")
     @api.param("renames",
                description="A list of name of the selected columns, and each rename is separated by comma.",
-               type="string",required = True)
+               type="string")
     @api.param("jointype",
                description="The type of join. (Inner, Partial, Full)",
-               type="string",required = True)
+               type="string")
     @api.param("match",
                description="The conditions needed to match.",
-               type="string",required = True)
+               type="string")
     @api.param("returned_view_name",
                description="This the the specified name for the view created by this function.",
-               type="string",required = True)
+               type="string")
     @api.expect(join_model)
     def post(self):
         tables = request.json["tables"]
