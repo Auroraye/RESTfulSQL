@@ -71,10 +71,10 @@ table_model = api.model("Table Model",
                          "uniques": fields.String()})
 
 update_table_model = api.model("Table Model - Update", {
-    "name": fields.String(description="Table name", example="Table1", required=True),
-    "columns": fields.String(description="Column name in comma separated list", example="Column1, Column2, Column3",
+    "name": fields.String(description="An exisiting table name", example="Table1", required=True),
+    "columns": fields.String(description="A list of column names", example="Column1, Column2, Column3",
                              required=True),
-    "operation": fields.String(description="Operation on the columns", enum=['insert', 'drop'], required=True)})
+    "operation": fields.String(description="Operation mode: insert, drop. If the mode is insert, the columns will be added to the table. If the mode is drop, the columns will be removed from the table", enum=['insert', 'drop'], required=True)})
 
 
 @table_space.route("")
@@ -94,12 +94,16 @@ class TableList(Resource):
         except Exception as e:
             raise e
 
-    @api.doc(description="Alter table columns", responses={200: "OK", 400: "Invalid Operation"})
+    @api.doc(description="<b>Insert or remove columns in an exisiting table.</b>"
+        + "<br/> <br/> Explanation: <br/> Insert or remove table columns by specifying the column names in a comma separated list. The data type of the new insert column is VARCHAR(200) by default."
+        + "<br/> <br/> Assumption: <br/> The table must exist in the database. To insert an column, the column name does not exist in the table. To remove an column, the column name exist in the table."
+        + "<br/> <br/> Limitation: <br/> The default data type is VARCHAR(200), but the data type can be changed using UPDATE /metadata endpoint.",
+        responses={200: "OK", 400: "Invalid Operation", 401: "Unauthorized access"})
     @api.expect(update_table_model)
     def put(self):
         table = request.json["name"]
         columns = request.json["columns"]
-        operation = request.json["operation"]
+        operation = request.json["operation"].lower()
         status, message, data, error = update_table(table, columns, operation, mysql)
         if (error):
             table_space.abort(status, error)
