@@ -42,22 +42,3 @@ class MainClass(Resource):
         except Exception as e:
             name_space.abort(
                 400, e.__doc__, status="Could not save information", statusCode="400")
-
-@api.doc(description="",
-         responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-@api.param("",
-           description="",
-           type="")
-
-
-    if status == 401:
-        table_space.abort(status, error)
-    return {"message": message}, status
-except PredictableException as e:
-    table_space.abort(e.get_status(), e.handle_me())
-except Exception as e:
-    table_space.abort(400, e)
-
-required=True,
-description="The name of table to modify",
-example="Table1"

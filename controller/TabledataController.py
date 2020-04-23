@@ -218,10 +218,7 @@ def typed_value(value):
     try:
         int_type = int(value)
         dec_type = float(value)
-        if float(int_type) != dec_type:
-            return dec_type
-        else:
-            return int_type
+        return value
     except Exception as e:
         return "\"" + value + "\""
 

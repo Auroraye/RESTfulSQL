@@ -773,7 +773,7 @@ class Join(Resource):
 
 upload_model = api.model("Upload Model",
                        {"name": fields.String(description="The table name", example="Table1", required=True),
-                        "csv": fields.String(description="Url of an csv file", example="http://gatech.edu/example.csv", required=True)})
+                        "csv": fields.String(description="Url of an csv file", example="http://samplecsvs.s3.amazonaws.com/Sacramentorealestatetransactions.csv", required=True)})
 
 @upload_space.route("")
 class Upload(Resource):
@@ -781,7 +781,8 @@ class Upload(Resource):
                          "This function process the uploaded csv by creating a table with the table name and "
                          "inserting each row to the table. The column name is the header of the csv. </br> </br> "
                          "Assumption: </br> The table name must not exist in the database and the file url must "
-                         "be valid. </br> </br> Limitation: </br> The file url must ends with .csv format",
+                         "be valid. </br> </br> Limitation: </br> The file url must ends with .csv format. This "
+                         "function does not create any key",
              responses={201: "Created", 400: "Failed to download the csv file", 401: "Unauthorized access"})
     @api.expect(upload_model)
     def post(self):
