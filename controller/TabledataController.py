@@ -1,4 +1,5 @@
 import os
+import json
 
 from controller.MetadataController import get_foreign_key, get_metadata
 from util.ExtractSpecialArray import check_table_field, extract_unique_key, check_exist_from_json
@@ -30,13 +31,21 @@ def get_tabledata(table, columns, page, filter, sort_by, mysql):
 
     command += " LIMIT 250 OFFSET " + str((int(page) - 1) * 250)
 
-    result, error = db_query(mysql, command)
+    columns, error = db_query(mysql, "SHOW columns FROM " + table)
+    data, error = db_query(mysql, command)
+    row_headers=[x[0] for x in columns]
+
+    json_data=[]
+    for row in data:
+        json_data.append(dict(zip(row_headers, row)))
+    # print(json.dumps(json_data))
+
     if (error == "FAILED_TO_CONNECT"):
         return 401, None, None, "Please connect to a database using the /connect endpoint."
     elif (error):
         return 400, None, None, error
     else:
-        return 200, "Success", result, None
+        return 200, "Success", json_data, None
 
 
 def update_tabledata(table, column, value, condition, mysql):

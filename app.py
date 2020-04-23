@@ -23,7 +23,7 @@ api = Api(app=flask_app,
 
 mysql = MySQL(flask_app)
 
-connect_space = api.namespace("connect", description="Connect to database")
+connect_space = api.namespace("connect", description="Connect to a database")
 table_space = api.namespace("table", description="Manage tables")
 tabledata_space = api.namespace("table/data", description="Manage data records")
 metadata_space = api.namespace("metadata", description="Manage metadata")
@@ -94,7 +94,7 @@ class TableList(Resource):
         except Exception as e:
             raise e
 
-    @api.doc(description="<b>Insert or remove columns in an exisiting table.</b>"
+    @api.doc(description="<b>Insert or remove columns from an exisiting table.</b>"
         + "<br/> <br/> Explanation: <br/> Insert or remove table columns by specifying the column names in a comma separated list. The data type of the new insert column is VARCHAR(200) by default."
         + "<br/> <br/> Assumption: <br/> The table must exist in the database. To insert an column, the column name does not exist in the table. To remove an column, the column name exist in the table."
         + "<br/> <br/> Limitation: <br/> The default data type is VARCHAR(200), but the data type can be changed using the UPDATE /metadata endpoint.",
@@ -139,17 +139,16 @@ insertdata_model = api.model("Insert Data Model",
 
 @tabledata_space.route("")
 class TabledataList(Resource):
-    @api.doc(description="Get the data from table" 
-        + "<br/> <br/> Explanation: <br/> explanation "
-        + "<br/> <br/> Assumption: <br/> assumption "
-        + "<br/> <br/> Limitation: <br/> limitation" 
-        + "<br/> <br/> Example: <br/> example" )
-    @api.param('sort_by', description='Sort by', type='string')
-    @api.param('filter', description='Apply a filter', type='string')
-    @api.param('page', description='Page to retrieve (each page contains 250 rows)', type='integer')
-    @api.param('columns', description='Columns to retrieve', type='string')
-    @api.param('name', description='Table name', type='string', required=True)
-    @api.doc(responses={200: "OK"})
+    @api.doc(description="<b>Get the data from an exisiting table. All the parameters are deatiled below.</b>" 
+        + "<br/> <br/> Explanation: <br/> Get the data from an exisiting table in the database. "
+        + "<br/> <br/> Assumption: <br/> The table exists in the database."
+        + "<br/> <br/> Limitation: <br/> This operation doesn't support complex aggregation such as sort, avg, min, and max. Please check POST /groupby for advanced aggregation.")
+    @api.param('sort_by', description='Sort the result set in ascending or descending order. The sort_by keyword sorts the records in ascending order by default. To sort the records in descending order, use the DESC keyword. An example: column1 ASEC, column2 DESC', type='string')
+    @api.param('filter', description='Extract only those records that fulfill the filter condition. It supports opeators: =, >, <, >=, <=, !=, BETWEEN, LIKE, and IN. It can be combined with AND, OR, and NOT operators. An example: column1 = 1 OR column2 = 2', type='string')
+    @api.param('page', description='Each page returns 250 rows. Setting the page number can retrieve more data and the default page is 1.', type='integer')
+    @api.param('columns', description='Specify the column to retrieve. All columns is returned by default.', type='string')
+    @api.param('name', description='An exisiting table name.', type='string', required=True)
+    @api.doc(responses={200: "OK", 400: "Table does not exist in the database", 401: "Unauthorized access"})
     def get(self):
         name = request.args["name"]
         columns = request.args["columns"] if "columns" in request.args else None
@@ -223,18 +222,18 @@ class MetadataList(Resource):
         status, message, data, error = update_column(name, column, kind, value, mysql)
         return organize_return(status, message, data, error)
 
-
-@metadata_space.route("/<string:table_name>")
+@metadata_space.route("")
 class Metadata(Resource):
-    """
-    if input is 'TABLE', output all tables in the db
-    if input is 'VIEW', output all views in the db
-    if input is <table_name>, output metadata for that table
-    """
-
-    def get(self, table_name):
+    @api.doc(description="<b>Get the metadata.</b>"
+                         + "<br/> <br/> Explanation: <br/> Get the metadata of the database or metadata of certain table."
+                         + "<br/> <br/> Assumption: <br/> The table exists in the database.")
+    @api.param('table_name', description='Enter \'TABLE\' to get a list of tables in database; Enter \'VIEW\' to get a list of views in the database; Enter an existing table name to get columns\' information for that table.',
+               type='string')
+    @api.doc(responses={200: "OK", 400: "Table does not exist in the database", 401: "Unauthorized access"})
+    def get(self):
+        table_name = request.args["table_name"]
         status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
-        return organize_return_with_data(status, message, data, error)
+        return return_response(status, message, data, error)
 
 
 uniquekey_model = api.model("Unique Key Model - Post",
@@ -305,37 +304,29 @@ class UniqueKeyList(Resource):
 # Here ends the metadata module
 
 
-'''
-If columns_A and columns_B are empty, SELECT ALL from both tables.
-(以后可以支持UNION ALL)
-'''
-union_model = api.model("Union Model",
-                        {"table_name_A": fields.String(required=True),
-                         "columns_A": fields.String,
-                         "table_name_B": fields.String(required=True),
-                         "columns_B": fields.String,
-                         "returned_view_name": fields.String})
-
-
 @union_space.route("")
 class Union(Resource):
-    @api.expect(union_model)
-    def post(self):
-        table_name_A = request.json["table_name_A"]
-        columns_A = request.json["columns_A"]
-        table_name_B = request.json["table_name_B"]
-        columns_B = request.json["columns_B"]
-        returned_view_name = request.json["returned_view_name"]
-
-        col_list_A = columns_A.split(',')
-        col_list_B = columns_B.split(',')
-
-        if len(col_list_A) != len(col_list_B):
-            raise ValueError("Number of columns in both tables are not equal.")
-
-        status, message, data, error = get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B,
+    @api.doc(description="<b>Union two existing tables from the database.</b>"
+                         + "<br/> <br/> Explanation: <br/> Check whether input tables and columns are valid and then union selected columns."
+                         + "<br/> <br/> Assumption: <br/> If leave 'columns_A' and 'columns_B' blank, it will automatically select ALL from two tables and union. The number of columns in these two field mush match.")
+    @api.param('returned_view_name', description='Name the view if you want to save the result as a view.', type='string')
+    @api.param('columns_B',
+               description='Specify the column to retrieve from table B and separate each column name by comma.  Select ALL if leave it blank',
+               type='string')
+    @api.param('table_name_B', description='An exisiting table name.', type='string', required=True)
+    @api.param('columns_A', description='Specify the column to retrieve from table A and separate each column name by comma. Select ALL if leave it blank', type='string')
+    @api.param('table_name_A', description='An existing table name.', type='string', required=True)
+    @api.doc(responses={200: "OK", 400: "Table does not exist in the database", 401: "Column does not exist in the table", 402: "Number of columns does not match"})
+    def get(self):
+        table_name_A = request.args["table_name_A"]
+        columns_A = request.args["columns_A"] if "columns_A" in request.args else None
+        table_name_B = request.args["table_name_B"]
+        columns_B = request.args["columns_B"] if "columns_B" in request.args else None
+        returned_view_name = request.args["returned_view_name"] if "returned_view_name" in request.args else None
+        status, message, data, error = get_union(mysql, table_name_A, columns_A, table_name_B, columns_B,
                                                  returned_view_name)
-        return organize_return_with_data(status, message, data, error)
+        return return_response(status, message, data, error)
+
 
 join_model = api.model("Join Model",
                             {"tables": fields.String(required=True),
