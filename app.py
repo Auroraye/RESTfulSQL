@@ -176,10 +176,11 @@ class Table(Resource):
 
 # Here starts the table data module
 tabledata_model = api.model("Tabledata Model",
-                            {"name": fields.String(required=True),
-                             "columns": fields.String(required=True),
-                             "values": fields.String(required=True),
-                             "condition": fields.String()})
+                            {"name": fields.String(required=True, example="table1"),
+                             "columns": fields.String(required=True, example="table1.id"),
+                             "values": fields.String(required=True, example="5"),
+                             "condition": fields.String(example="table1.id=2")})
+
 insertdata_model = api.model("Insert Data Model",
                              {"name": fields.String(required=True,
                                                     description="The table to insert data",
@@ -308,7 +309,8 @@ data_delete = api.model("Data Delete Model",
                                               description="The name of table to modify",
                                               example="Table1"),
                         "condition": fields.String(required=True,
-                                                   description="A list of conditions to be considered")})
+                                                   description="A list of conditions to be considered",
+                                                   example="Table1.id=1")})
 
 @tabledata_space.route("/<string:table_name>")
 class Tabledata(Resource):
@@ -683,12 +685,12 @@ class Union(Resource):
 
 
 join_model = api.model("Join Model",
-                       {"tables": fields.String(required=True),
-                        "columns": fields.String(required=True),
-                        "renames": fields.String(required=True),
-                        "joinType": fields.String(required=True),
-                        "match": fields.String(required=True),
-                        "returned_view_name": fields.String})
+                       {"tables": fields.String(required=True, example="table1,table2"),
+                        "columns": fields.String(required=True, example="table1.id,table2.id"),
+                        "renames": fields.String(required=True, example="table1_id,table2_id"),
+                        "joinType": fields.String(required=True, example="inner"),
+                        "match": fields.String(required=True, example="table1.id=table2.id"),
+                        "returned_view_name": fields.String(required=True, example="view_name")})
 
 group_model = api.model("Group Model",
                         dict(name=fields.String(required=True,
@@ -773,7 +775,7 @@ class Join(Resource):
                          "same the result for future usage.</br> </br> Assumption: The table must exist, the view must "
                          "not exist before this function, the length of functions must match the length of renames, "
                          "all the functions must be defined and used correctly. </br> </br> Limitation: </br> This "
-                         "function and the Union function, the groupby function are created based on this concept: a "
+                         "function and the Union function, the Groupby function are created based on this concept: a "
                          "complex and long MySQL query need to be decompose to make it easier for human to "
                          "understand. Therefore we create these three functions to create a stage view for each, "
                          "and the user can do more queries on these temporary views to accomplish the complex query. "
@@ -787,11 +789,10 @@ class Join(Resource):
                description="A list of columns selected to be modified",
                type="string",required = True)
     @api.param("renames",
-               description="A list of name of the result from the functions, and each name is corresponding to one "
-                           "function, and each rename is separated by comma.",
+               description="A list of name of the selected columns, and each rename is separated by comma.",
                type="string",required = True)
     @api.param("jointype",
-               description="The type of join.",
+               description="The type of join. (Inner, Partial, Full)",
                type="string",required = True)
     @api.param("match",
                description="The conditions needed to match.",
