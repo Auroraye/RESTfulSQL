@@ -304,37 +304,29 @@ class UniqueKeyList(Resource):
 # Here ends the metadata module
 
 
-'''
-If columns_A and columns_B are empty, SELECT ALL from both tables.
-(以后可以支持UNION ALL)
-'''
-union_model = api.model("Union Model",
-                        {"table_name_A": fields.String(required=True),
-                         "columns_A": fields.String,
-                         "table_name_B": fields.String(required=True),
-                         "columns_B": fields.String,
-                         "returned_view_name": fields.String})
-
-
 @union_space.route("")
 class Union(Resource):
-    @api.expect(union_model)
-    def post(self):
-        table_name_A = request.json["table_name_A"]
-        columns_A = request.json["columns_A"]
-        table_name_B = request.json["table_name_B"]
-        columns_B = request.json["columns_B"]
-        returned_view_name = request.json["returned_view_name"]
-
-        col_list_A = columns_A.split(',')
-        col_list_B = columns_B.split(',')
-
-        if len(col_list_A) != len(col_list_B):
-            raise ValueError("Number of columns in both tables are not equal.")
-
-        status, message, data, error = get_union(mysql, table_name_A, col_list_A, table_name_B, col_list_B,
+    @api.doc(description="<b>Union two existing tables from the database.</b>"
+                         + "<br/> <br/> Explanation: <br/> Check whether input tables and columns are valid and then union selected columns."
+                         + "<br/> <br/> Assumption: <br/> If leave 'columns_A' and 'columns_B' blank, it will automatically select ALL from two tables and union. The number of columns in these two field mush match.")
+    @api.param('returned_view_name', description='Name the view if you want to save the result as a view.', type='string')
+    @api.param('columns_B',
+               description='Specify the column to retrieve from table B and separate each column name by comma.  Select ALL if leave it blank',
+               type='string')
+    @api.param('table_name_B', description='An exisiting table name.', type='string', required=True)
+    @api.param('columns_A', description='Specify the column to retrieve from table A and separate each column name by comma. Select ALL if leave it blank', type='string')
+    @api.param('table_name_A', description='An existing table name.', type='string', required=True)
+    @api.doc(responses={200: "OK", 400: "Table does not exist in the database", 401: "Column does not exist in the table", 402: "Number of columns does not match"})
+    def get(self):
+        table_name_A = request.args["table_name_A"]
+        columns_A = request.args["columns_A"] if "columns_A" in request.args else None
+        table_name_B = request.args["table_name_B"]
+        columns_B = request.args["columns_B"] if "columns_B" in request.args else None
+        returned_view_name = request.args["returned_view_name"] if "returned_view_name" in request.args else None
+        status, message, data, error = get_union(mysql, table_name_A, columns_A, table_name_B, columns_B,
                                                  returned_view_name)
-        return organize_return_with_data(status, message, data, error)
+        return return_response(status, message, data, error)
+
 
 join_model = api.model("Join Model",
                             {"tables": fields.String(required=True),
