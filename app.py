@@ -303,6 +303,13 @@ class TabledataList(Resource):
         except Exception as e:
             table_space.abort(400, e)
 
+data_delete = api.model("Data Delete Model",
+                       {"name": fields.String(required=True,
+                                              description="The name of table to modify",
+                                              example="Table1"),
+                        "condition": fields.String(required=True,
+                                                   description="A list of conditions to be considered")})
+
 @tabledata_space.route("/<string:table_name>")
 class Tabledata(Resource):
     @api.doc(description="</b> This method supports delete records of a single table with pre-conditions. "
@@ -315,6 +322,7 @@ class Tabledata(Resource):
     @api.param("conditions",
                description="A list of columns to add new data, this also specify the order of the values",
                type="string", required=True)
+    @api.expect(data_delete)
     def delete(self, table_name):
         condition = request.json["condition"]
         status, message, data, error = delete_tabledata(table_name, condition, mysql)
@@ -677,6 +685,7 @@ class Union(Resource):
 join_model = api.model("Join Model",
                        {"tables": fields.String(required=True),
                         "columns": fields.String(required=True),
+                        "renames": fields.String(required=True),
                         "joinType": fields.String(required=True),
                         "match": fields.String(required=True),
                         "returned_view_name": fields.String})
@@ -759,15 +768,47 @@ class GroupBy(Resource):
 
 @join_space.route("")
 class Join(Resource):
+    @api.doc(description="<b> Apply join function to selected tables and create a view </b> </br> </br> Explanation: "
+                         "</br> This function applies join function to a table and creates a temporary view to "
+                         "same the result for future usage.</br> </br> Assumption: The table must exist, the view must "
+                         "not exist before this function, the length of functions must match the length of renames, "
+                         "all the functions must be defined and used correctly. </br> </br> Limitation: </br> This "
+                         "function and the Union function, the Join function are created based on this concept: a "
+                         "complex and long MySQL query need to be decompose to make it easier for human to "
+                         "understand. Therefore we create these three functions to create a stage view for each, "
+                         "and the user can do more queries on these temporary views to accomplish the complex query. "
+                         "This mechanism make the query easy to understand, but it requires more simple queries to "
+                         "accomplish the same goal.",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("name",
+               description="The name of tables to modify.",
+               type="string",required = True)
+    @api.param("columns",
+               description="A list of columns selected to be modified",
+               type="string",required = True)
+    @api.param("renames",
+               description="A list of name of the result from the functions, and each name is corresponding to one "
+                           "function, and each rename is separated by comma.",
+               type="string",required = True)
+    @api.param("jointype",
+               description="The type of join.",
+               type="string",required = True)
+    @api.param("match",
+               description="The conditions needed to match.",
+               type="string",required = True)
+    @api.param("returned_view_name",
+               description="This the the specified name for the view created by this function.",
+               type="string",required = True)
     @api.expect(join_model)
     def post(self):
         tables = request.json["tables"]
         columns = request.json["columns"]
+        renames = request.json["renames"]
         jointype = request.json["joinType"]
         match = request.json["match"]
         returned_view_name = request.json["returned_view_name"]
 
-        status, message, data, error = get_join(mysql, tables, columns, jointype, match, returned_view_name)
+        status, message, data, error = get_join(mysql, tables, columns, renames, jointype, match, returned_view_name)
         return organize_return(status, message, data, error)
 
 
