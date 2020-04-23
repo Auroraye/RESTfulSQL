@@ -94,7 +94,7 @@ class TableList(Resource):
         except Exception as e:
             raise e
 
-    @api.doc(description="<b>Insert or remove columns in an exisiting table.</b>"
+    @api.doc(description="<b>Insert or remove columns from an exisiting table.</b>"
         + "<br/> <br/> Explanation: <br/> Insert or remove table columns by specifying the column names in a comma separated list. The data type of the new insert column is VARCHAR(200) by default."
         + "<br/> <br/> Assumption: <br/> The table must exist in the database. To insert an column, the column name does not exist in the table. To remove an column, the column name exist in the table."
         + "<br/> <br/> Limitation: <br/> The default data type is VARCHAR(200), but the data type can be changed using the UPDATE /metadata endpoint.",
@@ -139,17 +139,16 @@ insertdata_model = api.model("Insert Data Model",
 
 @tabledata_space.route("")
 class TabledataList(Resource):
-    @api.doc(description="Get the data from table" 
-        + "<br/> <br/> Explanation: <br/> explanation "
-        + "<br/> <br/> Assumption: <br/> assumption "
-        + "<br/> <br/> Limitation: <br/> limitation" 
-        + "<br/> <br/> Example: <br/> example" )
-    @api.param('sort_by', description='Sort by', type='string')
-    @api.param('filter', description='Apply a filter', type='string')
-    @api.param('page', description='Page to retrieve (each page contains 250 rows)', type='integer')
-    @api.param('columns', description='Columns to retrieve', type='string')
-    @api.param('name', description='Table name', type='string', required=True)
-    @api.doc(responses={200: "OK"})
+    @api.doc(description="<b>Get the data from an exisiting table. All the parameters are deatiled below.</b>" 
+        + "<br/> <br/> Explanation: <br/> Get the data from an exisiting table in the database. "
+        + "<br/> <br/> Assumption: <br/> The table exists in the database."
+        + "<br/> <br/> Limitation: <br/> This operation doesn't support complex aggregation such as sort, avg, min, and max. Please check POST /groupby for advanced aggregation.")
+    @api.param('sort_by', description='Sort the result set in ascending or descending order. The sort_by keyword sorts the records in ascending order by default. To sort the records in descending order, use the DESC keyword. An example: column1 ASEC, column2 DESC', type='string')
+    @api.param('filter', description='Extract only those records that fulfill the filter condition. It supports opeators: =, >, <, >=, <=, !=, BETWEEN, LIKE, and IN. It can be combined with AND, OR, and NOT operators. An example: column1 = 1 OR column2 = 2', type='string')
+    @api.param('page', description='Each page returns 250 rows. Setting the page number can retrieve more data and the default page is 1.', type='integer')
+    @api.param('columns', description='Specify the column to retrieve. All columns is returned by default.', type='string')
+    @api.param('name', description='An exisiting table name.', type='string', required=True)
+    @api.doc(responses={200: "OK", 400: "Table does not exist in the database", 401: "Unauthorized access"})
     def get(self):
         name = request.args["name"]
         columns = request.args["columns"] if "columns" in request.args else None
