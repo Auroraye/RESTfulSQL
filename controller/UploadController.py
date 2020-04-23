@@ -23,10 +23,8 @@ def upload_file(table, url, mysql):
 			return 401, None, None, "Please connect to a database using the /connect endpoint."
 		
 		# Upload data
-		for row in my_list[1:2]:
+		for row in my_list[1:]:
 			row_list = ','.join(row)
-			print(column_names)
-			print(row_list)
 			status, message, data, error = vanilla_post_tabledata(table, column_names, row_list, mysql)
 	
 	return 200, "Table Created", None, None
