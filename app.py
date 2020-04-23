@@ -222,18 +222,18 @@ class MetadataList(Resource):
         status, message, data, error = update_column(name, column, kind, value, mysql)
         return organize_return(status, message, data, error)
 
-
-@metadata_space.route("/<string:table_name>")
+@metadata_space.route("")
 class Metadata(Resource):
-    """
-    if input is 'TABLE', output all tables in the db
-    if input is 'VIEW', output all views in the db
-    if input is <table_name>, output metadata for that table
-    """
-
-    def get(self, table_name):
+    @api.doc(description="<b>Get the metadata.</b>"
+                         + "<br/> <br/> Explanation: <br/> Get the metadata of the database or metadata of certain table."
+                         + "<br/> <br/> Assumption: <br/> The table exists in the database.")
+    @api.param('table_name', description='Enter \'TABLE\' to get a list of tables in database; Enter \'VIEW\' to get a list of views in the database; Enter an existing table name to get columns\' information for that table.',
+               type='string')
+    @api.doc(responses={200: "OK", 400: "Table does not exist in the database", 401: "Unauthorized access"})
+    def get(self):
+        table_name = request.args["table_name"]
         status, message, data, error = get_metadata(table_name, mysql, flask_app.config['MYSQL_DB'])
-        return organize_return_with_data(status, message, data, error)
+        return return_response(status, message, data, error)
 
 
 uniquekey_model = api.model("Unique Key Model - Post",
