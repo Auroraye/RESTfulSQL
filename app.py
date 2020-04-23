@@ -179,7 +179,7 @@ tabledata_model = api.model("Tabledata Model",
                             {"name": fields.String(required=True),
                              "columns": fields.String(required=True),
                              "values": fields.String(required=True),
-                             "conditions": fields.String()})
+                             "condition": fields.String()})
 insertdata_model = api.model("Insert Data Model",
                              {"name": fields.String(required=True,
                                                     description="The table to insert data",
@@ -234,16 +234,36 @@ class TabledataList(Resource):
         else:
             return return_response(status, message, data)
 
-    @api.doc(responses={200: "OK", 400: "Invalid Argument"})
+    @api.doc(description="</b> This method supports update records for one selected table. "
+                         "</b> </br> </br> Explanation: </br> This function updates selected records(row) for one selected "
+                         "table. </br> </br> Assumption: </br> There are some pre-condition of this function. The "
+                         "first requirement is that the name must exist in the database. Moreover, all the specified "
+                         "columns must in that table, and there should not be any duplicate columns in the parameter. "
+                         "The number of table should only be one. </br> </br> Limitation: "
+                         "</br> The advanced version has not yet completed.",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("name",
+               description="The name of table to update data",
+               type="string", required=True)
+    @api.param("columns",
+               description="A list of columns to update data, this also specify the order of the values",
+               type="string", required=True)
+    @api.param("values",
+               description="A list of values to be updated into the table, and it has one-to-one correspondence with "
+                           "columns.",
+               type="string", required=True)
+    @api.param("condition",
+               description="A condition to be considered while updating the record for the table ",
+               type="string")
     @api.expect(tabledata_model)
     def put(self):
         try:
             table = request.json["name"]
             column = request.json["columns"]
             value = request.json["values"]
-            conditions = request.json["conditions"]
+            conditions = request.json["condition"]
             status, message, data, error = update_tabledata(table, column, value, conditions, mysql)
-            return {"message": message}, status
+            return organize_return(status, message, data, error)
         except PredictableException as e:
             table_space.abort(
                 500, e.__doc__, status=e.hangdle_me(), statusCode="300")
@@ -277,20 +297,28 @@ class TabledataList(Resource):
             status, message, data, error = vanilla_post_tabledata(table, column, value, mysql)
             if status == 401:
                 table_space.abort(status, error)
-            return {"message": message}, status
+            return organize_return(status, message, data, error)
         except PredictableException as e:
             table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
             table_space.abort(400, e)
 
-
 @tabledata_space.route("/<string:table_name>")
 class Tabledata(Resource):
-    @api.doc(responses={200: "OK"})
+    @api.doc(description="</b> This method supports delete records of a single table with pre-conditions. "
+                         "</b> </br> </br> Explanation: </br> This function deletes record(row) of a specified "
+                         "table. </br> </br> Assumption: </br> There are some pre-condition of this function. The "
+                         "first requirement is that the name must exist in the database. Moreover, The number of "
+                         "table should only be one</br> </br> Limitation: "
+                         "</br> The advanced version has not yet completed.",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("conditions",
+               description="A list of columns to add new data, this also specify the order of the values",
+               type="string", required=True)
     def delete(self, table_name):
         condition = request.json["condition"]
         status, message, data, error = delete_tabledata(table_name, condition, mysql)
-        return {"message": message}, status
+        return organize_return(status, message, data, error)
 
 
 # Here ends the table data module
