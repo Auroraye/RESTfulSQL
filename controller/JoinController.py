@@ -54,7 +54,6 @@ def get_join(mysql, tables, columns, renames, jointype, match, returned_view_nam
         return 412, message, None, None
 
     command = command[:-1] + ";"
-    print(command)
     data, error = db_query(mysql, command, None)
     if error is not None:
         message = "Input incorrect! " + error
