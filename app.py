@@ -23,7 +23,7 @@ api = Api(app=flask_app,
 
 mysql = MySQL(flask_app)
 
-connect_space = api.namespace("connect", description="Connect to database")
+connect_space = api.namespace("connect", description="Connect to a database")
 table_space = api.namespace("table", description="Manage tables")
 tabledata_space = api.namespace("table/data", description="Manage data records")
 metadata_space = api.namespace("metadata", description="Manage metadata")
