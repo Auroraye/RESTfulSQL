@@ -458,12 +458,29 @@ class UniqueKey(Resource):
         except Exception as e:
             table_space.abort(400, e)
 
+    @api.doc(description="<b> Delete unique keys(indexes) from a table </b> </br> </br> Explanation: </br> This "
+                         "function drops indexes from a specified table. </br> </br> Assumption: </br> The table must "
+                         "exist, and the key names must be defined in that table. </br> </br> Limitation: </br> ^_^",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("name",
+               description="The name of table to modify.",
+               type="string")
+    @api.param("key_names",
+               description="A list of unique key(index) names to drop from the specified table.",
+               type="string")
     @api.expect(key_delete)
     def delete(self):
         table = request.json["name"]
         name = request.json["key_names"]
-        status, message, data, error = delete_unique_key(table, name, mysql)
-        return organize_return(status, message, data, error)
+        try:
+            status, message, data, error = delete_unique_key(table, name, mysql)
+            if status == 401:
+                table_space.abort(status, error)
+            return organize_return(status, message, data, error)
+        except PredictableException as e:
+            table_space.abort(e.get_status(), e.handle_me())
+        except Exception as e:
+            table_space.abort(400, e)
 
 
 @uniquekey_space.route("/<string:table_name>")
