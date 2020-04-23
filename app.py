@@ -483,11 +483,26 @@ class UniqueKey(Resource):
             table_space.abort(400, e)
 
 
+@api.doc(description="<b> Get a list of unique keys(indexes) of a table </b> </br> </br> Explanation: </br> This "
+                     "function returns a list of unique keys(indexes) that is defined in the specified table. If "
+                     "there is no index on that table, then it returns null value. </br> </br> Assumption: </br> The "
+                     "table must exist in the database. </br> </br> Limitation: </br> ^_^",
+         responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+@api.param("table_name",
+           description="The table to be queried.",
+           type="string")
 @uniquekey_space.route("/<string:table_name>")
 class UniqueKeyList(Resource):
     def get(self, table_name):
-        status, message, data, error = get_unique_key(table_name, mysql)
-        return organize_return_with_data(status, message, data, error)
+        try:
+            status, message, data, error = get_unique_key(table_name, mysql)
+            if status == 401:
+                table_space.abort(status, error)
+            return organize_return_with_data(status, message, data, error)
+        except PredictableException as e:
+            table_space.abort(e.get_status(), e.handle_me())
+        except Exception as e:
+            table_space.abort(400, e)
 
 
 foreignkey_model = api.model("Unique Key Model",
