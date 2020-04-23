@@ -1,9 +1,8 @@
 # RESTful API for MySQL
-
-## API Tutorial 	
-[https://towardsdatascience.com/working-with-apis-using-flask-flask-restplus-and-swagger-ui-7cf447deda7f](https://towardsdatascience.com/working-with-apis-using-flask-flask-restplus-and-swagger-ui-7cf447deda7f)
+A REST API wrapper to support CRUD operations in a MYSQL database system.
 
 ## Python Requirements 
+Python version: Python 3.7 or higher
 ```sh
 $ pip install flask
 $ pip install flask-restplus
@@ -20,11 +19,3 @@ In the debug mode:
 ```
 $ FLASK_APP=app.py FLASK_ENV=development flask run
 ```
-## Database Connection
-Hostname: db4free.net
-
-Port: 3306
-
-Username: mxkezffynken
-
-Password: XUWNG3gdFw82

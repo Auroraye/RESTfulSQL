@@ -101,15 +101,15 @@ class TableList(Resource):
                          "is separated by comma, and there <em>SHOULD NOT</em> have space at any point in this list. "
                          "This is the same for the list of indexes, each indexes is separated from others by comma, "
                          "and for composite indexes, parentheses should be used to group all the elements for a "
-                         "composite indexes. </br> </br> Assumption: </br> There are some pre-conditions when to use "
-                         "this function. <ul> <li> The table name must not exist in the database before, to check "
+                         "composite indexes. </br> </br> Assumption: </br> Here are some pre-conditions when to use "
+                         "this function: </br> - The table name must not exist in the database before, to check "
                          "this assumption, please go to GET Metadata function and query by \'TABLE\' to make sure the "
-                         "new table name is not in the result.</li> <li> There should not be any duplicate columns in the "
-                         "columns field. <li> All elements appear in uniques field must also appear in columns field. "
-                         "</li> </ul> </br> </br> <p> Limitation: </br> For this function, whatever errors occur during the"
+                         "new table name is not in the result. </br> - There should not be any duplicate columns in the "
+                         "columns field. </br> -  All elements appear in uniques field must also appear in columns field. "
+                         "</br> </br>Limitation: </br> For this function, whatever errors occur during the"
                          " executing time, the whole process would be aborted. Hence, a very small mistake on input "
                          "can cause the whole function to fail. This can make sure the schema fits the users' need, "
-                         "but it causes some inconvenience.</p>",
+                         "but it causes some inconvenience.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.expect(table_model)
     @api.param("name",
