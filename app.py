@@ -196,6 +196,13 @@ insertdata_model = api.model("Insert Data Model",
                                                                   "order; each value is separated by comma",
                                                       example="val1,val2,val3,val4")})
 
+data_delete = api.model("Data Delete Model",
+                       {"name": fields.String(required=True,
+                                              description="The name of table to modify",
+                                              example="Table1"),
+                        "condition": fields.String(required=True,
+                                                   description="A list of conditions to be considered",
+                                                   example="Table1.id=1")})
 
 @tabledata_space.route("")
 class TabledataList(Resource):
@@ -303,17 +310,6 @@ class TabledataList(Resource):
             table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
             table_space.abort(400, e)
-
-data_delete = api.model("Data Delete Model",
-                       {"name": fields.String(required=True,
-                                              description="The name of table to modify",
-                                              example="Table1"),
-                        "condition": fields.String(required=True,
-                                                   description="A list of conditions to be considered",
-                                                   example="Table1.id=1")})
-
-@tabledata_space.route("/<string:table_name>")
-class Tabledata(Resource):
     @api.doc(description="</b> This method supports delete records of a single table with pre-conditions. "
                          "</b> </br> </br> Explanation: </br> This function deletes record(row) of a specified "
                          "table. </br> </br> Assumption: </br> There are some pre-condition of this function. The "
@@ -323,13 +319,15 @@ class Tabledata(Resource):
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.param("conditions",
                description="A list of columns to add new data, this also specify the order of the values",
-               type="string", required=True)
+               type="string")
+    @api.param("name",
+               description="The name of table to update data",
+               type="string")
     @api.expect(data_delete)
     def delete(self, table_name):
         condition = request.json["condition"]
         status, message, data, error = delete_tabledata(table_name, condition, mysql)
         return organize_return(status, message, data, error)
-
 
 # Here ends the table data module
 
