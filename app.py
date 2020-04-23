@@ -46,7 +46,9 @@ connect_model = api.model("Connection Model",
 @connect_space.route("")
 class Connect(Resource):
     @api.doc(description="<b>Connect to a database.</b>"
-                         + "<br/> <br/> Explanation: <br/> Connect to a local or remote database by passing in all the required information. A successful connection is required to use any of the API endpoints."
+                         + "<br/> <br/> Explanation: <br/> Connect to a local or remote database by passing in all "
+                           "the required information. A successful connection is required to use any of the API "
+                           "endpoints. "
                          + "<br/> <br/> Assumption: <br/> The user have created a database before using the API. "
                          + "<br/> <br/> Limitation: <br/> Create database is not supported currently.",
              responses={200: "OK", 401: "Failed to connect to the database"})
@@ -109,6 +111,18 @@ class TableList(Resource):
                          "but it causes some inconvenience.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.expect(table_model)
+    @api.param("name",
+               description="The name of the new table, and this name must not exist in database before this operation.",
+               type="string")
+    @api.param("columns",
+               description="A list of columns to be created in the new table, and each columns need to be separated "
+                           "by comma. There should not be duplicate columns nor space between columns.",
+               type="string")
+    @api.param("uniques",
+               description="A list of indexes to be added to this new table, and each index is separated by comma. "
+                           "For composite index, the elements of the same key should be grouped by parentheses. This "
+                           "is an optional parameter.",
+               type="string")
     def post(self):
         try:
             table = request.json["name"]
@@ -169,9 +183,19 @@ tabledata_model = api.model("Tabledata Model",
                              "values": fields.String(required=True),
                              "conditions": fields.String()})
 insertdata_model = api.model("Insert Data Model",
-                             {"name": fields.String(required=True),
-                              "columns": fields.String(required=True),
-                              "values": fields.String(required=True)})
+                             {"name": fields.String(required=True,
+                                                    description="The table to insert data",
+                                                    example="Table1"),
+                              "columns": fields.String(required=True,
+                                                       description="The columns to insert data, and can also specify "
+                                                                   "the order of values; each column is separated by "
+                                                                   "comma",
+                                                       example="col1,col2,col3,col4"),
+                              "values": fields.String(required=True,
+                                                      description="A list of values, and each value is corresponding "
+                                                                  "to a column in the columns field in sequential "
+                                                                  "order; each value is separated by comma",
+                                                      example="val1,val2,val3,val4")})
 
 
 @tabledata_space.route("")
@@ -179,15 +203,21 @@ class TabledataList(Resource):
     @api.doc(description="<b>Get the data from an exisiting table. All the parameters are deatiled below.</b>"
                          + "<br/> <br/> Explanation: <br/> Get the data from an exisiting table in the database. "
                          + "<br/> <br/> Assumption: <br/> The table exists in the database."
-                         + "<br/> <br/> Limitation: <br/> This operation doesn't support complex aggregation such as sort, avg, min, and max. Please check POST /groupby for advanced aggregation.")
+                         + "<br/> <br/> Limitation: <br/> This operation doesn't support complex aggregation such as "
+                           "sort, avg, min, and max. Please check POST /groupby for advanced aggregation.")
     @api.param('sort_by',
-               description='Sort the result set in ascending or descending order. The sort_by keyword sorts the records in ascending order by default. To sort the records in descending order, use the DESC keyword. An example: column1 ASEC, column2 DESC',
+               description='Sort the result set in ascending or descending order. The sort_by keyword sorts the '
+                           'records in ascending order by default. To sort the records in descending order, '
+                           'use the DESC keyword. An example: column1 ASEC, column2 DESC',
                type='string')
     @api.param('filter',
-               description='Extract only those records that fulfill the filter condition. It supports opeators: =, >, <, >=, <=, !=, BETWEEN, LIKE, and IN. It can be combined with AND, OR, and NOT operators. An example: column1 = 1 OR column2 = 2',
+               description='Extract only those records that fulfill the filter condition. It supports opeators: =, >, '
+                           '<, >=, <=, !=, BETWEEN, LIKE, and IN. It can be combined with AND, OR, and NOT operators. '
+                           'An example: column1 = 1 OR column2 = 2',
                type='string')
     @api.param('page',
-               description='Each page returns 250 rows. Setting the page number can retrieve more data and the default page is 1.',
+               description='Each page returns 250 rows. Setting the page number can retrieve more data and the '
+                           'default page is 1.',
                type='integer')
     @api.param('columns', description='Specify the column to retrieve. All columns is returned by default.',
                type='string')
@@ -222,6 +252,24 @@ class TabledataList(Resource):
         except Exception as e:
             raise e
 
+    @api.doc(description="</b> The vanilla version of this method supports insert one record into a single table. "
+                         "</b> </br> </br> Explanation: </br> This function adds a new record(row) into a specified "
+                         "table. </br> </br> Assumption: </br> There are some pre-condition of this function. The "
+                         "first requirement is that the name must exist in the database. Moreover, all the specified "
+                         "columns must in that table, and there should not be any duplicate columns in the parameter. "
+                         "The length of the columns and the length of the values must match. </br> </br> Limitation: "
+                         "</br> The advanced version has not yet completed.",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("name",
+               description="The name of table to insert new data",
+               type="string")
+    @api.param("columns",
+               description="A list of columns to add new data, this also specify the order of the values",
+               type="string")
+    @api.param("values",
+               description="A list of values to be inserted into the table, and it has one-to-one correspondence with "
+                           "columns.",
+               type="string")
     @api.expect(insertdata_model)
     def post(self):
         try:
@@ -229,12 +277,13 @@ class TabledataList(Resource):
             column = request.json["columns"]
             value = request.json["values"]
             status, message, data, error = vanilla_post_tabledata(table, column, value, mysql)
+            if status == 401:
+                table_space.abort(status, error)
             return {"message": message}, status
         except PredictableException as e:
-            table_space.abort(
-                500, e.__doc__, status=e.hangdle_me(), statusCode="300")
+            table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
-            raise e
+            table_space.abort(400, e)
 
 
 @tabledata_space.route("/<string:table_name>")
@@ -251,8 +300,11 @@ class Tabledata(Resource):
 
 # Here starts the meta data module.
 column_model = api.model("Column Model",
-                         {"name": fields.String(required=True),
-                          "columns": fields.String(required=True),
+                         {"name": fields.String(required=True,
+                                                description="The name of the table to change the metadata",
+                                                example="Table1"),
+                          "columns": fields.String(required=True,
+                                                   description=""),
                           "types": fields.String(required=True),
                           "values": fields.String(required=True)})
 
@@ -260,7 +312,7 @@ column_model = api.model("Column Model",
 @metadata_space.route("")
 class MetadataList(Resource):
     @api.expect(column_model)
-    def post(self):
+    def put(self):
         name = request.json["name"]
         column = request.json['columns']
         kind = request.json['types']
@@ -272,10 +324,13 @@ class MetadataList(Resource):
 @metadata_space.route("")
 class Metadata(Resource):
     @api.doc(description="<b>Get the metadata.</b>"
-                         + "<br/> <br/> Explanation: <br/> Get the metadata of the database or metadata of certain table."
+                         + "<br/> <br/> Explanation: <br/> Get the metadata of the database or metadata of certain "
+                           "table. "
                          + "<br/> <br/> Assumption: <br/> The table exists in the database.")
     @api.param('table_name',
-               description='Enter \'TABLE\' to get a list of tables in database; Enter \'VIEW\' to get a list of views in the database; Enter an existing table name to get columns\' information for that table.',
+               description='Enter \'TABLE\' to get a list of tables in database; Enter \'VIEW\' to get a list of '
+                           'views in the database; Enter an existing table name to get columns\' information for that '
+                           'table.',
                type='string')
     @api.doc(responses={200: "OK", 400: "Table does not exist in the database", 401: "Unauthorized access"})
     def get(self):
@@ -357,16 +412,21 @@ class UniqueKeyList(Resource):
 @union_space.route("")
 class Union(Resource):
     @api.doc(description="<b>Union two existing tables from the database.</b>"
-                         + "<br/> <br/> Explanation: <br/> Check whether input tables and columns are valid and then union selected columns."
-                         + "<br/> <br/> Assumption: <br/> If leave 'columns_A' and 'columns_B' blank, it will automatically select ALL from two tables and union. The number of columns in these two field mush match.")
+                         + "<br/> <br/> Explanation: <br/> Check whether input tables and columns are valid and then "
+                           "union selected columns. "
+                         + "<br/> <br/> Assumption: <br/> If leave 'columns_A' and 'columns_B' blank, it will "
+                           "automatically select ALL from two tables and union. The number of columns in these two "
+                           "field mush match.")
     @api.param('returned_view_name', description='Name the view if you want to save the result as a view.',
                type='string')
     @api.param('columns_B',
-               description='Specify the column to retrieve from table B and separate each column name by comma.  Select ALL if leave it blank',
+               description='Specify the column to retrieve from table B and separate each column name by comma.  '
+                           'Select ALL if leave it blank',
                type='string')
     @api.param('table_name_B', description='An exisiting table name.', type='string', required=True)
     @api.param('columns_A',
-               description='Specify the column to retrieve from table A and separate each column name by comma. Select ALL if leave it blank',
+               description='Specify the column to retrieve from table A and separate each column name by comma. '
+                           'Select ALL if leave it blank',
                type='string')
     @api.param('table_name_A', description='An existing table name.', type='string', required=True)
     @api.doc(

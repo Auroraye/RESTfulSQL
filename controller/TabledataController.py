@@ -136,6 +136,15 @@ def delete_tabledata(table, condition, mysql):
 
 
 def post_tabledata(table, column, value, mysql):
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
+    con.close()
+    cur.close()
+
     check_table_field(table)
 
     columns = column.split(",")
@@ -184,9 +193,12 @@ def vanilla_post_tabledata(table, column, value, mysql):
         command += typed_value(v) + ", "
     command = command[0:-2] + ");"
 
-    con = mysql.connection
-    cur = con.cursor()
-    print(command)
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
     try:
         cur.execute(command)
         con.commit()
