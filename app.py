@@ -506,22 +506,61 @@ class UniqueKeyList(Resource):
 
 
 foreignkey_model = api.model("Unique Key Model",
-                             {"name": fields.String(required=True),
-                              "keys": fields.String(required=True),
-                              "targets": fields.String(required=True, description="Format is 'TableName.ColumnName'."),
-                              "key_names": fields.String(required=True)})
+                             {"name": fields.String(required=True,
+                                                    description="The name of table to modify",
+                                                    example="Table1"),
+                              "keys": fields.String(required=True,
+                                                    description="A list of columns to add foreign keys(references), "
+                                                                "and comma is used to separate each column",
+                                                    example="col1,col2"),
+                              "targets": fields.String(required=True,
+                                                       description="A list of columns that the keys reference to, "
+                                                                   "and the format is \'tablename.columnname\'",
+                                                       example="Table2.col1,Table3.col2"),
+                              "key_names": fields.String(required=True,
+                                                         description="A list of names for the new keys",
+                                                         example="reference1,reference2")})
 
 
 @foreignkey_space.route("")
 class ForeignKey(Resource):
+    @api.doc(description="<b> Add a new index to the table </b> </br> </br> Explanation: </br> This function add new "
+                         "foreign keys(references) to the specified table. The key field is a list of columns to add "
+                         "new ireference, and the field key_name is a list of the names to these new indexes. The "
+                         "field targets is the list of columns that the keys reference to. </br> </br> "
+                         "Assumption: </br> The table must exist; the columns must be defined; the key names must be "
+                         "new; the length of keys, targets and key_names must match; the targets value must in the "
+                         "correct format and both the table name and the column name must be defined. Any one of the "
+                         "requirements fails will cause the fail of the whole function.</br> </br> Limitation: </br> "
+                         "This function does not support add composit freign key(reference) now.",
+             responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+    @api.param("name",
+               description="The name of table to modify.",
+               type="string")
+    @api.param("keys",
+               description="A list of columns to add unique keys(indexes), and comma is used to separate each column",
+               type="string")
+    @api.param("targets",
+               description="A list of columns that the keys reference to, and the format is \'tablename.columnname\'",
+               type="string")
+    @api.param("key_names",
+               description="A list of names for the new keys.",
+               type="string")
     @api.expect(foreignkey_model)
     def post(self):
         table = request.json["name"]
         key = request.json["keys"]
         target = request.json["targets"]
         name = request.json["key_names"]
-        status, message, data, error = post_foreign_key(table, key, target, name, mysql)
-        return organize_return(status, message, data, error)
+        try:
+            status, message, data, error = post_foreign_key(table, key, target, name, mysql)
+            if status == 401:
+                table_space.abort(status, error)
+            return organize_return(status, message, data, error)
+        except PredictableException as e:
+            table_space.abort(e.get_status(), e.handle_me())
+        except Exception as e:
+            table_space.abort(400, e)
 
     @api.expect(key_delete)
     def delete(self):
