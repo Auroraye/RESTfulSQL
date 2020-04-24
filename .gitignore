@@ -5,3 +5,6 @@ tenv
 venv/
 .git/
 .vscode/
+Faculties.csv
+student.csv
+.gitignore

@@ -641,9 +641,6 @@ class UniqueKeyList(Resource):
                          "function can only return the foreign keys that this table has to reference to other table, "
                          "but not the foreign keys that the other tables have to reference to this table.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-    @api.param("table_name",
-               description="The table to be queried.",
-               type="string")
     def get(self, table_name):
         try:
             status, message, data, error = get_foreign_key(table_name, mysql)
@@ -651,8 +648,10 @@ class UniqueKeyList(Resource):
                 table_space.abort(status, error)
             return organize_return_with_data(status, message, data, error)
         except PredictableException as e:
+            raise e
             table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
+            raise e
             table_space.abort(400, e)
 
 
