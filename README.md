@@ -5,12 +5,10 @@
 
 A REST API wrapper to support CRUD operations in a MYSQL database system.It allows to effortlessly build and deploy highly customizable RESTful Web Services that supports most of the underlying SQL statements such as SELECT, INSERT, UPDATE, and DELETE operators.
 
-## Data Preparation and Setup
+## Setup and Data Preparation
 
-### Setup
 Supported database: MySQL, version 8.0.19. To install MySQL, please follow the official [MySQL Installer Guide](https://dev.mysql.com/doc/mysql-installer/en/).
 
-### Data
 You are free to create your own table and add data using our API endpoints. We also have provided an example schema and different operations in the ```/example``` folder.
 
 ## Application and Code
