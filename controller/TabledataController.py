@@ -1,8 +1,7 @@
 import os
 import json
-
 from controller.MetadataController import get_foreign_key, get_metadata
-from util.ExtractSpecialArray import check_table_field, extract_unique_key, check_exist_from_json, database
+from util.ExtractSpecialArray import check_table_field, extract_unique_key, check_exist_from_json
 from util.QueryHelper import db_query
 from controller.PredictableExeption import *
 
@@ -471,25 +470,126 @@ def insert_lower_table(table, unknown, known, mysql):
 
     # Get the list of tables that referencing to this table.
     table_list = []
-    command = "SELECT REF_NAME FROM information_schema.INNODB_SYS_FOREIGN WHERE REF_NAME == \"" + database
+    print(os.getenv("MYSQL_DB"))
+    command = "SELECT FOR_NAME FROM information_schema.INNODB_SYS_FOREIGN WHERE REF_NAME LIKE \"" + os.getenv("MYSQL_DB")
     command += "/" + table + "\";"
+    print(command)
     cur = mysql.connection.cursor()
     try:
         cur.execute(command)
-        result = cur.fechall()
+        result = cur.fetchall()
         for i in result:
-            table_list.append(i[0][len(database) + 1:])
+            table_list.append(i[0][len(os.getenv("MYSQL_DB")) + 1:])
         cur.close()
     except Exception as e:
         cur.close()
         raise PredictableHaveNoRightException()
 
+    print(table_list)
+    print(unknown)
     # Check margin case:
     if len(table_list) == 0:
         return unknown, []
 
+    referenced = {}
+    for t in table_list:
+        key = t
+        table_info = {"name": t}
+        ti, t2, data, t3 = get_foreign_key(t, mysql)
+        print(data)
+        list_of_key = []
+        for row in data:
+            if row["target_table"].lower() == table.lower():
+                column_name = row["column"]
+                referenced_column = row["target_column"]
+                column_value = ""
+                for x in known:
+                    if x["column"] == referenced_column:
+                        column_value = x["value"]
+                        break
+                list_of_key.append({"column": column_name, "value": column_value})
+        if len(list_of_key) < 1:
+            continue
+        table_info["key"] = list_of_key
+        referenced[t] = table_info
+    if len(referenced) == 0:
+        return unknown, []
 
-    pass
+    # Organize all the columns in all the referenced table, and put them in to each table.
+    all_columns = {}
+    for t in referenced:
+        t1, t2, data, t3 = get_metadata(t, mysql)
+        for r in data:
+            col = r["Field"]
+            if col not in referenced[t]["key"]:
+                if col in all_columns:
+                    all_columns[col] += 1
+                else:
+                    all_columns[col] = 1
+                if "column" in referenced[t]:
+                    referenced[t]["column"].append(col)
+                else:
+                    referenced[t]["column"] = [col]
+
+    # Check if there is any columns appear in more than one table.
+    new_know = {}
+    still_unknown = {}
+    for colu in unknown:
+        all_column_key = [k for k in all_columns]
+        col = colu["column"]
+        val = colu["value"]
+        if col in all_column_key:
+            if all_columns[col] == 1:
+                new_know[col] = val
+            else:
+                raise PredictableAmbiguousColumnNameException("a," + col)
+        else:
+            still_unknown[col] = val
+    if len(new_know) == 0:
+        return unknown, []
+
+    # Create command
+    array_command = []
+    for info in referenced:
+        table_name = referenced[info]["name"]
+        cols = {}
+        for col in referenced[info]["column"]:
+            if col in new_know:
+                cols[col] = new_know[col]
+        if len(cols) > 0:
+            keys = referenced[info]["key"]
+            print(type(keys))
+            columns = [k for k in cols]
+            command = "INSERT INTO `" + table_name + "` (" + referenced[info]["key"][0]["column"]
+            j = 1
+            while j < len(keys):
+                command += ", " + referenced[info]["key"][j]["column"]
+                j += 1
+            command += ", " + columns[0]
+            j = 1
+            while j < len(columns):
+                command += ", " + columns[j]
+                j += 1
+            command += ") VALUE(" + typed_value(referenced[info]["key"][0]["value"])
+            j = 1
+            while j < len(keys):
+                command += ", " + typed_value(referenced[info]["key"][j]["value"])
+                j += 1
+            command += ", " + typed_value(cols[columns[0]])
+            j = 1
+            while j < len(columns):
+                command += ", " + typed_value(cols[columns[j]])
+                j += 1
+            command += ");"
+            print(command)
+            array_command.append(command)
+    new_unknown = []
+    print(still_unknown)
+    unknown_key = [k for k in still_unknown]
+    print(unknown_key)
+    for k in unknown_key:
+        new_unknown.append({"column": k, "value": still_unknown[k]})
+    return new_unknown, array_command
 
 
 def insert_into_table(command, cur):
@@ -541,10 +641,11 @@ def insert_multiple_tables(table, column, value, mysql):
     command_array.append(command)
 
     if len(unknown) != 0:
-        nknown, more_commad = insert_lower_table(table, unknown, known, mysql)
-        command_array.append(more_commad)
+        unknown, more_commad = insert_lower_table(table, unknown, known, mysql)
+        command_array.extend(more_commad)
 
     if len(unknown) != 0:
+        print(unknown)
         raise PredictableException("There is at least one unknown columns in the field \"columns\"")
 
     con, cur = None, None

@@ -1,7 +1,5 @@
 from controller.PredictableExeption import *
 
-database = ""
-
 
 def extract_unique_key(u):
     unique = u

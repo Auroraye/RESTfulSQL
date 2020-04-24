@@ -2,7 +2,6 @@ import json
 from flask_mysqldb import MySQL
 from flask import Flask, request, jsonify
 from flask_restplus import Api, Resource, fields, reqparse
-
 from controller.FilterController import post_filter
 from util.Result import *
 from util.QueryHelper import *
@@ -16,6 +15,8 @@ from controller.TabledataController import *
 from controller.JoinController import *
 from controller.GroupController import post_group_by
 from controller.UploadController import *
+
+
 
 flask_app = Flask(__name__)
 api = Api(app=flask_app,
@@ -62,7 +63,15 @@ class Connect(Resource):
         flask_app.config["MYSQL_USER"] = request.json["username"]
         flask_app.config["MYSQL_PASSWORD"] = request.json["password"]
         flask_app.config["MYSQL_DB"] = request.json["database"]
-        database = request.json["database"]
+        text = ""
+        f = open(".env", "r")
+        for x in f:
+            if not x.startswith("MYSQL_DB"):
+                text += x + "\n"
+        f.close()
+        f = open(".env","w")
+        f.write(text)
+        f.write("MYSQL_DB = " + request.json["database"])
 
         result, error = db_query(mysql, "SHOW STATUS")
         if (error):
