@@ -10,8 +10,8 @@ def get_tabledata(table, column, page, filter, sort_by, mysql):
     command = "SELECT "
     if column:
         columns = column.split(",")
-        for column in columns:
-            command += column + ","
+        for c in columns:
+            command += c + ","
         command = command[:-1] + " "
     else: 
         command += "* "
@@ -35,8 +35,7 @@ def get_tabledata(table, column, page, filter, sort_by, mysql):
     if column is None:
         row_headers=[x[0] for x in columns]
     else:
-        row_headers = [column]
-    print(row_headers)
+        row_headers = column.split(",")
 
     json_data=[]
     for row in data:
