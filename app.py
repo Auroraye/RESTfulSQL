@@ -254,19 +254,19 @@ class TabledataList(Resource):
                          "The number of table should only be one. </br> </br> Limitation: "
                          "</br> The advanced version has not yet completed.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-    @api.param("name",
-               description="The name of table to update data",
-               type="string")
-    @api.param("columns",
-               description="A list of columns to update data, this also specify the order of the values",
-               type="string")
-    @api.param("values",
-               description="A list of values to be updated into the table, and it has one-to-one correspondence with "
-                           "columns.",
-               type="string")
-    @api.param("condition",
-               description="A condition to be considered while updating the record for the table ",
-               type="string")
+    # @api.param("name",
+    #            description="The name of table to update data",
+    #            type="string")
+    # @api.param("columns",
+    #            description="A list of columns to update data, this also specify the order of the values",
+    #            type="string")
+    # @api.param("values",
+    #            description="A list of values to be updated into the table, and it has one-to-one correspondence with "
+    #                        "columns.",
+    #            type="string")
+    # @api.param("condition",
+    #            description="A condition to be considered while updating the record for the table ",
+    #            type="string")
     @api.expect(tabledata_model)
     def put(self):
         try:
@@ -577,18 +577,18 @@ class ForeignKey(Resource):
                          "requirements fails will cause the fail of the whole function.</br> </br> Limitation: </br> "
                          "This function does not support add composit freign key(reference) now.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-    @api.param("name",
-               description="The name of table to modify.",
-               type="string")
-    @api.param("keys",
-               description="A list of columns to add unique keys(indexes), and comma is used to separate each column",
-               type="string")
-    @api.param("targets",
-               description="A list of columns that the keys reference to, and the format is \'tablename.columnname\'",
-               type="string")
-    @api.param("key_names",
-               description="A list of names for the new keys.",
-               type="string")
+    # @api.param("name",
+    #            description="The name of table to modify.",
+    #            type="string")
+    # @api.param("keys",
+    #            description="A list of columns to add unique keys(indexes), and comma is used to separate each column",
+    #            type="string")
+    # @api.param("targets",
+    #            description="A list of columns that the keys reference to, and the format is \'tablename.columnname\'",
+    #            type="string")
+    # @api.param("key_names",
+    #            description="A list of names for the new keys.",
+    #            type="string")
     @api.expect(foreignkey_model)
     def post(self):
         table = request.json["name"]
@@ -611,12 +611,12 @@ class ForeignKey(Resource):
                          "The foreign key can only be deleted from the table which references to others but not the "
                          "table which is referenced by others.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-    @api.param("name",
-               description="The name of table to modify.",
-               type="string")
-    @api.param("key_names",
-               description="A list of foreign key(reference) names to drop from the specified table.",
-               type="string")
+    # @api.param("name",
+    #            description="The name of table to modify.",
+    #            type="string")
+    # @api.param("key_names",
+    #            description="A list of foreign key(reference) names to drop from the specified table.",
+    #            type="string")
     @api.expect(key_delete)
     def delete(self):
         table = request.json["name"]
