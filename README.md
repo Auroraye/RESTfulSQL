@@ -1,5 +1,5 @@
 # RESTful SQL
-![Application screenshoot](/images/app.png)
+![Application screenshoot](/images/app.png =250x)
 
 A REST API wrapper to support CRUD operations in a MYSQL database system.It allows to effortlessly build and deploy highly customizable RESTful Web Services that supports most of the underlying SQL statements such as SELECT, INSERT, UPDATE, and DELETE operators.
 
