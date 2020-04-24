@@ -1,5 +1,5 @@
 __pycache__/
-tenv
+.env
 .idea/
 .idea/
 venv/
