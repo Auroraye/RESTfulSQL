@@ -36,12 +36,12 @@ def LFU_reset(mysql):
 
     
 def LFU_delete(mysql, view_name):
-result_view_list = LFU_get_view_table(mysql)
-for ele in result_view_list:
-        if ele[0] == view_name:
-            db_query(mysql, 'DROP VIEW \'{}\';'.format(view_name))
-            return 1
-return 0
+    result_view_list = LFU_get_view_table(mysql)
+    for ele in result_view_list:
+            if ele[0] == view_name:
+                db_query(mysql, 'DROP VIEW \'{}\';'.format(view_name))
+                return 1
+    return 0
 
 
 def LFU_create_view_table(mysql):
