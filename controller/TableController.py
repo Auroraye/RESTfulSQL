@@ -1,6 +1,7 @@
 from controller.PredictableExeption import *
 from util.ExtractSpecialArray import extract_unique_key
 from util.QueryHelper import db_query
+from util.LFUHelper import *
 
 
 # This function create a table with unique key(s)
@@ -86,13 +87,26 @@ def create_table(table, column, unique, mysql):
 
 
 def delete_table(table_name, mysql):
-    result, error = db_query(mysql, "DROP TABLE " + table_name)
-    if (error == "FAILED_TO_CONNECT"):
-        return 401, None, None, "Please connect to a database using the /connect endpoint."
-    elif (error):
-        return 400, None, None, error
-    else:
-        return 200, "Table {} is deleted.".format(table_name), result, None
+    # check whether it input is a VIEW
+    check_type_result, error = db_query(mysql, 'SHOW FULL TABLES like \'{}\''.format(table_name))
+    if len(check_type_result) > 0 and check_type_result[0][1] == 'VIEW':
+        LFU_delete(mysql, table_name) 
+        result, error = db_query(mysql, "DROP VIEW " + table_name)
+        if (error == "FAILED_TO_CONNECT"):
+            return 401, None, None, "Please connect to a database using the /connect endpoint."
+        elif (error):
+            return 400, None, None, error
+        else:
+            return 200, "View {} is deleted.".format(table_name), result, None
+    else: 
+        result, error = db_query(mysql, "DROP TABLE " + table_name)
+        if (error == "FAILED_TO_CONNECT"):
+            return 401, None, None, "Please connect to a database using the /connect endpoint."
+        elif (error):
+            return 400, None, None, error
+        else:
+            return 200, "Table {} is deleted.".format(table_name), result, None
+
 
 
 def update_table(table, columns, operation, mysql):
