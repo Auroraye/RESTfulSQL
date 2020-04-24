@@ -483,18 +483,18 @@ class UniqueKey(Resource):
                          "new; the length of keys and key_names must match. Any one of the requirements fails will "
                          "cause the fail of the whole function. For composite key, all elements in a parentheses are "
                          "count for one in term of matching the length between the keys parameter and the key_names "
-                         "parameter. </br> </br> Limitation: </br> ^_^",
+                         "parameter.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-    @api.param("name",
-               description="The name of table to modify.",
-               type="string")
-    @api.param("keys",
-               description="A list of columns to add unique keys(indexes), and comma is used to separate each column, "
-                           "and parentheses is used to group composite key",
-               type="string")
-    @api.param("key_names",
-               description="A list of names for the new keys.",
-               type="string")
+    # @api.param("name",
+    #            description="The name of table to modify.",
+    #            type="string")
+    # @api.param("keys",
+    #            description="A list of columns to add unique keys(indexes), and comma is used to separate each column, "
+    #                        "and parentheses is used to group composite key",
+    #            type="string")
+    # @api.param("key_names",
+    #            description="A list of names for the new keys.",
+    #            type="string")
     @api.expect(uniquekey_model)
     def post(self):
         table = request.json["name"]
@@ -512,7 +512,7 @@ class UniqueKey(Resource):
 
     @api.doc(description="<b> Delete unique keys(indexes) from a table </b> </br> </br> Explanation: </br> This "
                          "function drops indexes from a specified table. </br> </br> Assumption: </br> The table must "
-                         "exist, and the key names must be defined in that table. </br> </br> Limitation: </br> ^_^",
+                         "exist, and the key names must be defined in that table.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.param("name",
                description="The name of table to modify.",
@@ -538,8 +538,8 @@ class UniqueKey(Resource):
 @api.doc(description="<b> Get a list of unique keys(indexes) of a table </b> </br> </br> Explanation: </br> This "
                      "function returns a list of unique keys(indexes) that is defined in the specified table. If "
                      "there is no index on that table, then it returns null value. </br> </br> Assumption: </br> The "
-                     "table must exist in the database. </br> </br> Limitation: </br> ^_^",
-         responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
+                     "table must exist in the database.",
+         responses={200: "OK", 400: "Bad Request", 401: "Unauthorized access"})
 @api.param("table_name",
            description="The table to be queried.",
            type="string")
