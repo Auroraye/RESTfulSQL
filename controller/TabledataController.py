@@ -374,9 +374,8 @@ def insert_upper_table(table, unknown, known, mysql):
                     break
             if vale == "":
                 continue
-            key_tar_list.append({info["target_column"]: vale})
+            key_tar_list.append({"column": info["target_column"], "value": vale})
             table_info["key"] = key_tar_list
-            referenced.append(info["target_table"])
             referenced[info["target_table"]] = table_info
         else:
             key_tar_list = []
@@ -411,64 +410,94 @@ def insert_upper_table(table, unknown, known, mysql):
     # Check if there is any columns appear in more than one table.
     new_know = {}
     still_unknown = {}
-    for col in unknown:
-        if col in all_columns:
+    for colu in unknown:
+        all_column_key = [k for k in all_columns]
+        col = colu["column"]
+        val = colu["value"]
+        if col in all_column_key:
             if all_columns[col] == 1:
-                new_know[col] = unknown[col]
+                new_know[col] = val
             else:
                 raise PredictableAmbiguousColumnNameException("a," + col)
         else:
-            still_unknown[col] = unknown[col]
+            still_unknown[col] = val
     if len(new_know) == 0:
         return unknown, []
 
     # Create command
     array_command = []
     for info in referenced:
-        table_name = info["name"]
+        table_name = referenced[info]["name"]
         cols = {}
-        for col in info["column"]:
+        for col in referenced[info]["column"]:
             if col in new_know:
                 cols[col] = new_know[col]
-        if len(cols) > 1:
-            keys = info["key"].keys()
-            columns = cols.keys()
-            command = "INSERT INTO `" + table_name + "` (" + keys[0]
+        if len(cols) > 0:
+            keys = referenced[info]["key"]
+            print(type(keys))
+            columns = [k for k in cols]
+            command = "INSERT INTO `" + table_name + "` (" + referenced[info]["key"][0]["column"]
             j = 1
             while j < len(keys):
-                command += ", " + keys[j]
+                command += ", " + referenced[info]["key"][j]["column"]
                 j += 1
             command += ", " + columns[0]
             j = 1
             while j < len(columns):
                 command += ", " + columns[j]
                 j += 1
-            command += ") VALUE(" + info["key"][keys[0]]
+            command += ") VALUE(" + typed_value(referenced[info]["key"][0]["value"])
             j = 1
             while j < len(keys):
-                command += ", " + info["key"][keys[j]]
+                command += ", " + typed_value(referenced[info]["key"][j]["value"])
                 j += 1
-            command += ", " + cols[columns[0]]
+            command += ", " + typed_value(cols[columns[0]])
             j = 1
             while j < len(columns):
-                command += ", " + cols[columns[j]]
+                command += ", " + typed_value(cols[columns[j]])
                 j += 1
             command += ");"
-        array_command.append(command)
-    return still_unknown, array_command
+            print(command)
+            array_command.append(command)
+    new_unknown = []
+    unknown_key = [k for k in still_unknown]
+    for k in unknown_key:
+        new_unknown.append({"column": k, "value": still_unknown[k]})
+    return new_unknown, array_command
 
 
 def insert_lower_table(table, unknown, known, mysql):
+    array_command = []
+
+    # Get the list of tables that referencing to this table.
+    table_list = []
+    command = "SELECT REF_NAME FROM information_schema.INNODB_SYS_FOREIGN WHERE REF_NAME == \"" + database
+    command += "/" + table + "\";"
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute(command)
+        result = cur.fechall()
+        for i in result:
+            table_list.append(i[0][len(database) + 1:])
+        cur.close()
+    except Exception as e:
+        cur.close()
+        raise PredictableHaveNoRightException()
+
+    # Check margin case:
+    if len(table_list) == 0:
+        return unknown, []
+
+
     pass
 
 
 def insert_into_table(command, cur):
-    for c in command:
-        try:
-            cur.execute(c)
-        except Exception as e:
-            print(c)
-            raise e
+    try:
+        cur.execute(command)
+    except Exception as e:
+        print(command)
+        raise e
 
 
 def insert_multiple_tables(table, column, value, mysql):
@@ -496,12 +525,12 @@ def insert_multiple_tables(table, column, value, mysql):
     command_array = []
     if len(unknown) != 0:
         unknown, more_commad = insert_upper_table(table, unknown, known, mysql)
-        command_array.append(more_commad)
+        command_array.extend(more_commad)
 
-    command = "INSERT INTO `" + table + "` (" + known[0]["name"]
+    command = "INSERT INTO `" + table + "` (" + known[0]["column"]
     i = 1
     while i < len(known):
-        command += ", " + known[i]["name"]
+        command += ", " + known[i]["column"]
         i += 1
     command += ") VALUE(" + typed_value(known[0]["value"])
     i = 1
@@ -526,9 +555,10 @@ def insert_multiple_tables(table, column, value, mysql):
     except Exception as e:
         return 401, None, None, e
 
+    print(command_array)
     for c in command_array:
         insert_into_table(c, cur)
-
+    con.commit()
     cur.close()
     status = 200
     message = "Data is inserted into table " + table + "."

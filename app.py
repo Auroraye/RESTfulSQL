@@ -306,13 +306,15 @@ class TabledataList(Resource):
             table = request.json["name"]
             column = request.json["columns"]
             value = request.json["values"]
-            status, message, data, error = vanilla_post_tabledata(table, column, value, mysql)
+            status, message, data, error = insert_multiple_tables(table, column, value, mysql)
             if status == 401:
                 table_space.abort(status, error)
             return organize_return(status, message, data, error)
         except PredictableException as e:
+            raise e
             table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
+            raise e
             table_space.abort(400, e)
 
     @api.doc(description="</b> This method supports delete records of a single table with pre-conditions. "

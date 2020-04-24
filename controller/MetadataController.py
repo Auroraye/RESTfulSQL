@@ -7,7 +7,7 @@ from util.ExtractSpecialArray import *
 from util.QueryHelper import db_query
 
 
-def get_metadata(table_name, mysql, current_database):
+def get_metadata(table_name, mysql, current_database=database):
     resultlist = []
     error = ""
     if table_name == 'TABLE':
