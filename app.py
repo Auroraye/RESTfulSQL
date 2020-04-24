@@ -831,7 +831,7 @@ class Join(Resource):
 
 
 upload_model = api.model("Upload Model",
-                         {"name": fields.String(description="The table name", example="Table1", required=True),
+                         {"name": fields.String(description="An exisiting table name", example="Table1"),
                           "csv": fields.String(description="Url of an csv file",
                                                example="http://samplecsvs.s3.amazonaws.com/Sacramentorealestatetransactions.csv",
                                                required=True)})
@@ -839,12 +839,13 @@ upload_model = api.model("Upload Model",
 
 @upload_space.route("")
 class Upload(Resource):
-    @api.doc(description="<b> Upload a csv file to the database </b> </br> </br> Explanation: </br> "
-                         "This function process the uploaded csv by creating a table with the table name and "
-                         "inserting each row to the table. The column name is the header of the csv. </br> </br> "
-                         "Assumption: </br> The table name must not exist in the database and the file url must "
-                         "be valid. </br> </br> Limitation: </br> The file url must ends with .csv format. This "
-                         "function does not create any key",
+    @api.doc(description="<b> Upload a csv file to the database. If the table name is specified, the data will "
+                        "be added to an exisiting table. Otherwise, it will create a new table.</b> "
+                        "</br> </br> Explanation: </br> This function process the uploaded csv by creating a "
+                        "table with the table name and inserting each row to the table. The column name is "
+                        "the header of the csv. </br> </br> Assumption: </br> The table name must not exist "
+                        "in the database and the file url must be valid. </br> </br> Limitation: </br> The "
+                        "file url must ends with .csv format. This function does not create any key",
              responses={201: "Created", 400: "Failed to download the csv file", 401: "Unauthorized access"})
     @api.expect(upload_model)
     def post(self):
