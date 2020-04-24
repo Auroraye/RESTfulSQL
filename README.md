@@ -9,7 +9,7 @@ A REST API wrapper to support CRUD operations in a MYSQL database system.It allo
 
 Supported database: MySQL, version 8.0.19. To install MySQL, please follow the official [MySQL Installer Guide](https://dev.mysql.com/doc/mysql-installer/en/).
 
-You are free to create your own table and add data using our API endpoints. We also have provided an example schema and different operations in the ```/example``` folder.
+You are free to create your own table and add data using our API endpoints or use an existing database. We also have provided an example schema and different operations in the ```/example``` folder.
 
 ## Application and Code
 Required Python version: Python 3.7 or higher. To install Python, please visit the  [Python Download Guideline](https://www.python.org/downloads/)
