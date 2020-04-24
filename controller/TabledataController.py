@@ -69,18 +69,18 @@ def update_tabledata(table, column, value, condition, mysql):
         raise PredictableColumnNumberMismatchException(elem)
 
     # Now, we can start to communicate with the database.
-    command = "UPDATE `" + table + "` "
+    command = "UPDATE " + table + " "
     command = command + "SET "
     x = 0
     for elem in columns:
-        command = command + "`" + elem + "` = " + value[x] + ", "
+        command = command + elem + " = " + values[x] + ", "
         x+=1
     command = command[:-2] + " "
     if len(condition) != 0:
         command = command + "Where " + condition + ";"
     else:
         command = command + ";"
-    
+    print(command)
     data, error = db_query(mysql, command)
     if error != None:
         status = 412
