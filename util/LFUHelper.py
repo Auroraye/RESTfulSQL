@@ -34,6 +34,15 @@ def LFU_envict(mysql, result_view_list):
 def LFU_reset(mysql):
     db_query(mysql, 'DROP TABLE view_count_reserved;', None)
 
+    
+def LFU_delete(mysql, view_name):
+result_view_list = LFU_get_view_table(mysql)
+for ele in result_view_list:
+        if ele[0] == view_name:
+            db_query(mysql, 'DROP VIEW \'{}\';'.format(view_name))
+            return 1
+return 0
+
 
 def LFU_create_view_table(mysql):
     exist_result, error = db_query(
