@@ -849,7 +849,7 @@ class Upload(Resource):
              responses={201: "Created", 400: "Failed to download the csv file", 401: "Unauthorized access"})
     @api.expect(upload_model)
     def post(self):
-        name = request.json["name"] if "name" in request.json else None
+        name = request.json["name"]
         csv = request.json["csv"]
         status, message, data, error = upload_file(name, csv, mysql)
         if (error):

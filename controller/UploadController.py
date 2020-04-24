@@ -17,9 +17,8 @@ def upload_file(table, url, mysql):
 		column_names = ','.join(my_list[0])
 		if "Error" in my_list[1]:
 			return 400, None, None, "Failed to download the file"
-		
 		# Create table 
-		if not table:
+		if table:
 			status, message, data, error = create_table(table, column_names, "", mysql)
 			if status == 401:
 				return 401, None, None, "Please connect to a database using the /connect endpoint."
