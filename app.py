@@ -299,8 +299,7 @@ class TabledataList(Resource):
                          "pre-condition of this function. The first requirement is that the name must exist in the "
                          "database. Moreover, <del> all the specified columns must in that table, and </del> there "
                          "should not be any duplicate columns in the parameter. The length of the columns and the "
-                         "length of the values must match. </br> </br> Limitation: </br> <del> The advanced version "
-                         "has not yet completed. </del> This function only supports to insert data into the tables "
+                         "length of the values must match. </br> </br> Limitation: </br> This function only supports to insert data into the tables "
                          "directly linked to the specified tables, and this function only supports insert one record "
                          "at each time.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
