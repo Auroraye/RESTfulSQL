@@ -1,4 +1,6 @@
 # RESTful SQL
+![Application screenshoot](/images/app.png)
+
 A REST API wrapper to support CRUD operations in a MYSQL database system.It allows to effortlessly build and deploy highly customizable RESTful Web Services that supports most of the underlying SQL statements such as SELECT, INSERT, UPDATE, and DELETE operators.
 
 ## Data Preparation and Setup
@@ -34,6 +36,3 @@ The url for the namespace is http://127.0.0.1:5000/main
 
 ## Code Documentation and References
 All the code is written by the team following the [Flask-RESTful 0.3.8 documentation](https://flask-restful.readthedocs.io/en/latest/).
-
-A screenshot of our application: 
-![Application screenshoot](/images/app.png)
