@@ -124,18 +124,18 @@ class TableList(Resource):
                          "but it causes some inconvenience.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.expect(table_model)
-    @api.param("name",
-               description="The name of the new table, and this name must not exist in database before this operation.",
-               type="string")
-    @api.param("columns",
-               description="A list of columns to be created in the new table, and each columns need to be separated "
-                           "by comma. There should not be duplicate columns nor space between columns.",
-               type="string")
-    @api.param("uniques",
-               description="A list of indexes to be added to this new table, and each index is separated by comma. "
-                           "For composite index, the elements of the same key should be grouped by parentheses. This "
-                           "is an optional parameter.",
-               type="string")
+    # @api.param("name",
+    #            description="The name of the new table, and this name must not exist in database before this operation.",
+    #            type="string")
+    # @api.param("columns",
+    #            description="A list of columns to be created in the new table, and each columns need to be separated "
+    #                        "by comma. There should not be duplicate columns nor space between columns.",
+    #            type="string")
+    # @api.param("uniques",
+    #            description="A list of indexes to be added to this new table, and each index is separated by comma. "
+    #                        "For composite index, the elements of the same key should be grouped by parentheses. This "
+    #                        "is an optional parameter.",
+    #            type="string")
     def post(self):
         try:
             table = request.json["name"]
@@ -401,25 +401,25 @@ class MetadataList(Resource):
                          "Limitation: </br> This function only support very limited data type, namely, int, decimal, "
                          "date, char(), and varchar().",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-    @api.param("name",
-               description="The table to change its metadata.",
-               type="string")
-    @api.param("columns",
-               description="A list of columns in the table to change the  metadata(setting), and this parameter allow "
-                           "duplication as long as there are same number but different type of operations apply on "
-                           "that column.",
-               type="string")
-    @api.param("operations",
-               description="A list of operation to apply the column specified above, and this is an enum, the valid "
-                           "values are: default-to change default value of the column; type-to change the data type "
-                           "of the column; nullable-to specify if the column allow null value.",
-               type="string")
-    @api.param("values",
-               description="This is the list about what to do with each operation,  for default, there is not "
-                           "requirement of value; for type operation, the valid values are int, float, double, "
-                           "decimal, date, string, char, and varchar; for nullable type, value yes, true and 1 are "
-                           "for allowing null value, and value no, false and 0 are for the opposite.",
-               type="string")
+    # @api.param("name",
+    #            description="The table to change its metadata.",
+    #            type="string")
+    # @api.param("columns",
+    #            description="A list of columns in the table to change the  metadata(setting), and this parameter allow "
+    #                        "duplication as long as there are same number but different type of operations apply on "
+    #                        "that column.",
+    #            type="string")
+    # @api.param("operations",
+    #            description="A list of operation to apply the column specified above, and this is an enum, the valid "
+    #                        "values are: default-to change default value of the column; type-to change the data type "
+    #                        "of the column; nullable-to specify if the column allow null value.",
+    #            type="string")
+    # @api.param("values",
+    #            description="This is the list about what to do with each operation,  for default, there is not "
+    #                        "requirement of value; for type operation, the valid values are int, float, double, "
+    #                        "decimal, date, string, char, and varchar; for nullable type, value yes, true and 1 are "
+    #                        "for allowing null value, and value no, false and 0 are for the opposite.",
+    #            type="string")
     @api.expect(column_model)
     def put(self):
         name = request.json["name"]
@@ -750,23 +750,23 @@ class GroupBy(Resource):
                          "This mechanism make the query easy to understand, but it requires more simple queries to "
                          "accomplish the same goal.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-    @api.param("name",
-               description="The name of table to modify.",
-               type="string")
-    @api.param("functions",
-               description="A list of MySQL predefined functions with parameters, each function shall in form of "
-                           "\'function(param)\' and should be separated by comma from other functions.",
-               type="string")
-    @api.param("renames",
-               description="A list of name of the result from the functions, and each name is corresponding to one "
-                           "function, and each rename is separated by comma.",
-               type="string")
-    @api.param("group_by",
-               description="This field specifies according which data the table should be grouped.",
-               type="string")
-    @api.param("view_name",
-               description="This the the specified name for the view created by this function.",
-               type="string")
+    # @api.param("name",
+    #            description="The name of table to modify.",
+    #            type="string")
+    # @api.param("functions",
+    #            description="A list of MySQL predefined functions with parameters, each function shall in form of "
+    #                        "\'function(param)\' and should be separated by comma from other functions.",
+    #            type="string")
+    # @api.param("renames",
+    #            description="A list of name of the result from the functions, and each name is corresponding to one "
+    #                        "function, and each rename is separated by comma.",
+    #            type="string")
+    # @api.param("group_by",
+    #            description="This field specifies according which data the table should be grouped.",
+    #            type="string")
+    # @api.param("view_name",
+    #            description="This the the specified name for the view created by this function.",
+    #            type="string")
     @api.expect(group_model)
     def post(self):
         table = request.json["name"]
@@ -800,24 +800,24 @@ class Join(Resource):
                          "This mechanism make the query easy to understand, but it requires more simple queries to "
                          "accomplish the same goal.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-    @api.param("name",
-               description="The name of tables to modify.",
-               type="string")
-    @api.param("columns",
-               description="A list of columns selected to be modified",
-               type="string")
-    @api.param("renames",
-               description="A list of name of the selected columns, and each rename is separated by comma.",
-               type="string")
-    @api.param("jointype",
-               description="The type of join. (Inner, Partial, Full)",
-               type="string")
-    @api.param("match",
-               description="The conditions needed to match.",
-               type="string")
-    @api.param("returned_view_name",
-               description="This the the specified name for the view created by this function.",
-               type="string")
+    # @api.param("name",
+    #            description="The name of tables to modify.",
+    #            type="string")
+    # @api.param("columns",
+    #            description="A list of columns selected to be modified",
+    #            type="string")
+    # @api.param("renames",
+    #            description="A list of name of the selected columns, and each rename is separated by comma.",
+    #            type="string")
+    # @api.param("jointype",
+    #            description="The type of join. (Inner, Partial, Full)",
+    #            type="string")
+    # @api.param("match",
+    #            description="The conditions needed to match.",
+    #            type="string")
+    # @api.param("returned_view_name",
+    #            description="This the the specified name for the view created by this function.",
+    #            type="string")
     @api.expect(join_model)
     def post(self):
         tables = request.json["tables"]
