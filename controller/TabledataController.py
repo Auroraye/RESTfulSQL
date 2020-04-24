@@ -360,16 +360,115 @@ def insert_referencing(table, col_val, uniques, mysql):
 
 def insert_upper_table(table, unknown, known, mysql):
     t1, t2, array, t3 = get_foreign_key(table, mysql)
+    referenced = {}
 
-    pass
+    # Get the information about the referenced table
+    for info in array:
+        if info["target_table"] not in referenced:
+            table_info = {"name": info["target_table"]}
+            key_tar_list = []
+            vale = ""
+            for c in known:
+                if c["column"] == info["column"]:
+                    vale = c["value"]
+                    break
+            if vale == "":
+                continue
+            key_tar_list.append({info["target_column"]: vale})
+            table_info["key"] = key_tar_list
+            referenced.append(info["target_table"])
+            referenced[info["target_table"]] = table_info
+        else:
+            key_tar_list = []
+            vale = ""
+            for c in known:
+                if c["column"] == info["column"]:
+                    vale = c["value"]
+                    break
+            if vale == "":
+                continue
+            key_tar_list.append({info["target_column"]: vale})
+            referenced[info["target_table"]]["key"].append(key_tar_list)
+    if len(referenced) == 0:
+        return unknown, []
+
+    # Organize all the columns in all the referenced table, and put them in to each table.
+    all_columns = {}
+    for t in referenced:
+        t1, t2, data, t3 = get_metadata(t, mysql)
+        for r in data:
+            col = r["Field"]
+            if col not in referenced[t]["key"]:
+                if col in all_columns:
+                    all_columns[col] += 1
+                else:
+                    all_columns[col] = 1
+                if "column" in referenced[t]:
+                    referenced[t]["column"].append(col)
+                else:
+                    referenced[t]["column"] = [col]
+
+    # Check if there is any columns appear in more than one table.
+    new_know = {}
+    still_unknown = {}
+    for col in unknown:
+        if col in all_columns:
+            if all_columns[col] == 1:
+                new_know[col] = unknown[col]
+            else:
+                raise PredictableAmbiguousColumnNameException("a," + col)
+        else:
+            still_unknown[col] = unknown[col]
+    if len(new_know) == 0:
+        return unknown, []
+
+    # Create command
+    array_command = []
+    for info in referenced:
+        table_name = info["name"]
+        cols = {}
+        for col in info["column"]:
+            if col in new_know:
+                cols[col] = new_know[col]
+        if len(cols) > 1:
+            keys = info["key"].keys()
+            columns = cols.keys()
+            command = "INSERT INTO `" + table_name + "` (" + keys[0]
+            j = 1
+            while j < len(keys):
+                command += ", " + keys[j]
+                j += 1
+            command += ", " + columns[0]
+            j = 1
+            while j < len(columns):
+                command += ", " + columns[j]
+                j += 1
+            command += ") VALUE(" + info["key"][keys[0]]
+            j = 1
+            while j < len(keys):
+                command += ", " + info["key"][keys[j]]
+                j += 1
+            command += ", " + cols[columns[0]]
+            j = 1
+            while j < len(columns):
+                command += ", " + cols[columns[j]]
+                j += 1
+            command += ");"
+        array_command.append(command)
+    return still_unknown, array_command
 
 
 def insert_lower_table(table, unknown, known, mysql):
     pass
 
 
-def insert_into_table(c, cur):
-    pass
+def insert_into_table(command, cur):
+    for c in command:
+        try:
+            cur.execute(c)
+        except Exception as e:
+            print(c)
+            raise e
 
 
 def insert_multiple_tables(table, column, value, mysql):
