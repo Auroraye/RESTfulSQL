@@ -293,11 +293,16 @@ class TabledataList(Resource):
 
     @api.doc(description="</b> The vanilla version of this method supports insert one record into a single table. "
                          "</b> </br> </br> Explanation: </br> This function adds a new record(row) into a specified "
-                         "table. </br> </br> Assumption: </br> There are some pre-condition of this function. The "
-                         "first requirement is that the name must exist in the database. Moreover, all the specified "
-                         "columns must in that table, and there should not be any duplicate columns in the parameter. "
-                         "The length of the columns and the length of the values must match. </br> </br> Limitation: "
-                         "</br> The advanced version has not yet completed.",
+                         "table. There is a more advanced feature implemented for this function. For a table that has "
+                         "foreign keys to link to other tables, this function supports to insert into those linked "
+                         "tables by one command if there is no error.</br> </br> Assumption: </br> There are some "
+                         "pre-condition of this function. The first requirement is that the name must exist in the "
+                         "database. Moreover, <del> all the specified columns must in that table, and </del> there "
+                         "should not be any duplicate columns in the parameter. The length of the columns and the "
+                         "length of the values must match. </br> </br> Limitation: </br> <del> The advanced version "
+                         "has not yet completed. </del> This function only supports to insert data into the tables "
+                         "directly linked to the specified tables, and this function only supports insert one record "
+                         "at each time.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.param("name",
                description="The name of table to insert new data",
