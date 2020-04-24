@@ -304,16 +304,16 @@ class TabledataList(Resource):
                          "directly linked to the specified tables, and this function only supports insert one record "
                          "at each time.",
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
-    @api.param("name",
-               description="The name of table to insert new data",
-               type="string")
-    @api.param("columns",
-               description="A list of columns to add new data, this also specify the order of the values",
-               type="string")
-    @api.param("values",
-               description="A list of values to be inserted into the table, and it has one-to-one correspondence with "
-                           "columns.",
-               type="string")
+    # @api.param("name",
+    #            description="The name of table to insert new data",
+    #            type="string")
+    # @api.param("columns",
+    #            description="A list of columns to add new data, this also specify the order of the values",
+    #            type="string")
+    # @api.param("values",
+    #            description="A list of values to be inserted into the table, and it has one-to-one correspondence with "
+    #                        "columns.",
+    #            type="string")
     @api.expect(insertdata_model)
     def post(self):
         try:
