@@ -87,3 +87,20 @@ def delete_table(table_name, mysql):
     result, error = db_query(mysql, "DROP TABLE " + table_name)
 
     return status, message, None, error
+
+
+def update_table(table, columns, operation, mysql):
+    if operation != "insert" or operation != "drop":
+        return 400, None, None, "Invalid Operation"
+
+    command = "ALTER TABLE " + table
+    columns = columns.split(",")
+    for column_name in columns:
+        if operation == "insert":
+            command += " ADD " + column_name + " VARCHAR(200),"
+        else:
+            command += " DROP COLUMN " + column_name + ","
+    command = command[:-1]
+    result, error = db_query(mysql, command)
+
+    return 200, "Success", None, None

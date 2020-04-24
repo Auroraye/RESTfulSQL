@@ -1,5 +1,5 @@
 
-def db_query(mysql, query, args):
+def db_query(mysql, query, args=None):
     """
     A handler method for calling database procedures.
     :param query: the name of the query to be executed
