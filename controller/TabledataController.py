@@ -428,7 +428,6 @@ def insert_multiple_tables(table, column, value, mysql):
         cur = con.cursor()
     except Exception as e:
         return 401, None, None, e
-    con.close()
     cur.close()
 
     command_array = []
