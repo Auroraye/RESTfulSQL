@@ -462,7 +462,7 @@ def delete_foreign_key(table, name, mysql):
     for key in tem:
         command = "ALTER TABLE `" + table + "` DROP FOREIGN KEY `" + key + "`;"
         try:
-            cur.execute(key)
+            cur.execute(command)
         except Exception as e:
             con.rollback()
             cur.close()
