@@ -1,4 +1,4 @@
-# RESTful SQL
+# RESTfulSQL API
 <p align="center">
   <img width="460" src="/images/app.png">
 </p>
