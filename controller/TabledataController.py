@@ -6,12 +6,12 @@ from util.QueryHelper import db_query
 from controller.PredictableExeption import *
 
 
-def get_tabledata(table, columns, page, filter, sort_by, mysql):
+def get_tabledata(table, column, page, filter, sort_by, mysql):
     command = "SELECT "
-    if columns:
-        columns = columns.split(",")
-        for column in columns:
-            command += column + ","
+    if column:
+        columns = column.split(",")
+        for c in columns:
+            command += c + ","
         command = command[:-1] + " "
     else: 
         command += "* "
@@ -32,7 +32,10 @@ def get_tabledata(table, columns, page, filter, sort_by, mysql):
 
     columns, error = db_query(mysql, "SHOW columns FROM " + table)
     data, error = db_query(mysql, command)
-    row_headers=[x[0] for x in columns]
+    if column is None:
+        row_headers=[x[0] for x in columns]
+    else:
+        row_headers = column.split(",")
 
     json_data=[]
     for row in data:

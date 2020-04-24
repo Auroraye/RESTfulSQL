@@ -462,7 +462,7 @@ def delete_foreign_key(table, name, mysql):
     for key in tem:
         command = "ALTER TABLE `" + table + "` DROP FOREIGN KEY `" + key + "`;"
         try:
-            cur.execute(key)
+            cur.execute(command)
         except Exception as e:
             con.rollback()
             cur.close()
@@ -479,6 +479,7 @@ def delete_foreign_key(table, name, mysql):
 
 def get_foreign_key(table, mysql):
     check_table_field(table)
+    table = table.lower()
 
     con, cur = None, None
     try:
@@ -493,7 +494,7 @@ def get_foreign_key(table, mysql):
         cur.execute(command)
     except Exception as e:
         cur.close()
-        raise PredictableTableNotFoundException
+        raise PredictableTableNotFoundException(table)
 
     command = "SHOW CREATE TABLE `" + table + "`;"
     result = ""
