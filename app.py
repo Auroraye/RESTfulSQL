@@ -648,10 +648,8 @@ class UniqueKeyList(Resource):
                 table_space.abort(status, error)
             return organize_return_with_data(status, message, data, error)
         except PredictableException as e:
-            raise e
             table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
-            raise e
             table_space.abort(400, e)
 
 
@@ -922,9 +920,7 @@ class Filter(Resource):
                 table_space.abort(status, error)
             return organize_return(status, message, data, error)
         except PredictableException as e:
-            raise e
             table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
-            raise e
             table_space.abort(400, e)
         pass

@@ -34,12 +34,10 @@ def post_group_by(table, function, rename, group, view, mysql):
         message = "View " + view + " has been created."
         LFU_increment(view, mysql)
         return status, message, None, None
-    except MySQLdb._exceptions.OperationalError:
-        pass
     except Exception as e:
         try:
             con.rollback()
             cur.close()
             raise e
-        except MySQLdb._exceptions.OperationalError:
+        except MySQLdb._exceptions.OperationalError as e:
             raise e
