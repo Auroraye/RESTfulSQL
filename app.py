@@ -129,7 +129,7 @@ class TableList(Resource):
     #            type="string")
     def post(self):
         try:
-            table = request.json["name"]
+            table = request.json["name"].lower()
             column = request.json["columns"]
             unique = request.json["uniques"]
             status, message, data, error = create_table(table, column, unique, mysql)
@@ -151,7 +151,7 @@ class TableList(Resource):
              responses={200: "OK", 400: "Invalid Operation", 401: "Unauthorized access"})
     @api.expect(update_table_model)
     def put(self):
-        table = request.json["name"]
+        table = request.json["name"].lower()
         columns = request.json["columns"]
         operation = request.json["operation"].lower()
         status, message, data, error = update_table(table, columns, operation, mysql)
@@ -270,7 +270,7 @@ class TabledataList(Resource):
     @api.expect(tabledata_model)
     def put(self):
         try:
-            table = request.json["name"]
+            table = request.json["name"].lower()
             column = request.json["columns"]
             value = request.json["values"]
             conditions = request.json["condition"]
@@ -307,7 +307,7 @@ class TabledataList(Resource):
     @api.expect(insertdata_model)
     def post(self):
         try:
-            table = request.json["name"]
+            table = request.json["name"].lower()
             column = request.json["columns"]
             value = request.json["values"]
             status, message, data, error = insert_multiple_tables(table, column, value, mysql, flask_app.config["MYSQL_DB"] )
@@ -334,7 +334,7 @@ class TabledataList(Resource):
                type="string")
     @api.expect(data_delete)
     def delete(self):
-        table = request.json["name"]
+        table = request.json["name"].lower()
         conditions = request.json["condition"]
         status, message, data, error = delete_tabledata(table, conditions, mysql)
         return organize_return(status, message, data, error)
@@ -488,7 +488,7 @@ class UniqueKey(Resource):
     #            type="string")
     @api.expect(uniquekey_model)
     def post(self):
-        table = request.json["name"]
+        table = request.json["name"].lower()
         key = request.json["keys"]
         name = request.json["key_names"]
         try:
@@ -513,7 +513,7 @@ class UniqueKey(Resource):
                type="string")
     @api.expect(key_delete)
     def delete(self):
-        table = request.json["name"]
+        table = request.json["name"].lower()
         name = request.json["key_names"]
         try:
             status, message, data, error = delete_unique_key(table, name, mysql)
@@ -591,7 +591,7 @@ class ForeignKey(Resource):
     #            type="string")
     @api.expect(foreignkey_model)
     def post(self):
-        table = request.json["name"]
+        table = request.json["name"].lower()
         key = request.json["keys"]
         target = request.json["targets"]
         name = request.json["key_names"]
@@ -619,7 +619,7 @@ class ForeignKey(Resource):
     #            type="string")
     @api.expect(key_delete)
     def delete(self):
-        table = request.json["name"]
+        table = request.json["name"].lower()
         name = request.json["key_names"]
         try:
             status, message, data, error = delete_foreign_key(table, name, mysql)
@@ -656,7 +656,29 @@ class UniqueKeyList(Resource):
 
 
 # Here ends the metadata module
-
+union_model = api.model("Union Model",
+                             {"table_name_A": fields.String(required=True,
+                                                    description="An existing table name.",
+                                                    example="Table1"),
+                              "columns_A": fields.String(required=True,
+                                                    description="Specify the column to retrieve from table A and "
+                                                                "separate each column name by comma. Select ALL if "
+                                                                "leave it blank",
+                                                    example="col1,col2"),
+                              "table_name_B": fields.String(required=True,
+                                                       description="Specify the column to retrieve from table B and "
+                                                                   "separate each column name by comma. Select ALL if "
+                                                                   "leave it blank",
+                                                       example="Table2"),
+                              "columns_B": fields.String(required=True,
+                                                         description="Specify the column to retrieve from table B and "
+                                                                     "separate each column name by comma. Select ALL "
+                                                                     "if leave it blank",
+                                                         example="col1,col2"),
+                              "returned_view_name": fields.String(required=True,
+                                                                  description="Name the view if you want to save the "
+                                                                              "result as a view.",
+                                                                  example="view_x")})
 
 @union_space.route("")
 class Union(Resource):
@@ -665,27 +687,28 @@ class Union(Resource):
                          "union selected columns. <br/> <br/> Assumption: <br/> If leave 'columns_A' and 'columns_B' "
                          "blank, it will automatically select ALL from two tables and union. The number of columns "
                          "in these two field mush match.")
-    @api.param("returned_view_name", description="Name the view if you want to save the result as a view.",
-               type="string")
-    @api.param("columns_B",
-               description="Specify the column to retrieve from table B and separate each column name by comma.  "
-                           "Select ALL if leave it blank",
-               type="string")
-    @api.param("table_name_B", description="An exisiting table name.", type="string", required=True)
-    @api.param("columns_A",
-               description="Specify the column to retrieve from table A and separate each column name by comma. "
-                           "Select ALL if leave it blank",
-               type="string")
-    @api.param("table_name_A", description="An existing table name.", type="string", required=True)
+    # @api.param("returned_view_name", description="Name the view if you want to save the result as a view.",
+    #            type="string")
+    # @api.param("columns_B",
+    #            description="Specify the column to retrieve from table B and separate each column name by comma.  "
+    #                        "Select ALL if leave it blank",
+    #            type="string")
+    # @api.param("table_name_B", description="An exisiting table name.", type="string", required=True)
+    # @api.param("columns_A",
+    #            description="Specify the column to retrieve from table A and separate each column name by comma. "
+    #                        "Select ALL if leave it blank",
+    #            type="string")
+    # @api.param("table_name_A", description="An existing table name.", type="string", required=True)
     @api.doc(
         responses={200: "OK", 400: "Table does not exist in the database", 401: "Column does not exist in the table",
                    402: "Number of columns does not match"})
-    def get(self):
-        table_name_A = request.args["table_name_A"]
-        columns_A = request.args["columns_A"] if "columns_A" in request.args else None
-        table_name_B = request.args["table_name_B"]
-        columns_B = request.args["columns_B"] if "columns_B" in request.args else None
-        returned_view_name = request.args["returned_view_name"] if "returned_view_name" in request.args else None
+    @api.expect(union_model)
+    def post(self):
+        table_name_A = request.json["table_name_A"]
+        columns_A = request.json["columns_A"] if len(request.json["columns_A"]) > 0 else None
+        table_name_B = request.json["table_name_B"]
+        columns_B = request.json["columns_B"] if len(request.json["columns_B"]) > 0 else None
+        returned_view_name = request.json["returned_view_name"]
         status, message, data, error = get_union(mysql, table_name_A, columns_A, table_name_B, columns_B,
                                                  returned_view_name)
         return return_response(status, message, data, error)
@@ -758,7 +781,7 @@ class GroupBy(Resource):
     #            type="string")
     @api.expect(group_model)
     def post(self):
-        table = request.json["name"]
+        table = request.json["name"].lower()
         function = request.json["functions"]
         new_name = request.json["rename"]
         groupby = request.json["group_by"]
@@ -886,7 +909,7 @@ class Filter(Resource):
              responses={201: "Created", 400: "Bad Request", 401: "Unauthorized access", 412: "Invalid arguments"})
     @api.expect(filter_model)
     def post(self):
-        table = request.json["name"]
+        table = request.json["name"].lower()
         column = request.json["columns"]
         operator = request.json["operators"]
         condition = request.json["conditions"]
@@ -899,7 +922,9 @@ class Filter(Resource):
                 table_space.abort(status, error)
             return organize_return(status, message, data, error)
         except PredictableException as e:
+            raise e
             table_space.abort(e.get_status(), e.handle_me())
         except Exception as e:
+            raise e
             table_space.abort(400, e)
         pass

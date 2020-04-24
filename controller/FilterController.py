@@ -24,7 +24,7 @@ def post_filter(table, column, operator, condition, atype, view, mysql):
     atype = atype.upper()
     if atype not in ["AND", "OR", "XOR"]:
         raise PredictableInvalidArgumentException("9")
-
+    table = table.lower()
     t1, t2, array, t3 = get_metadata_(table, mysql)
     for c in columns:
         if not check_exist_from_json(c, array, "Field"):
@@ -44,7 +44,7 @@ def post_filter(table, column, operator, condition, atype, view, mysql):
 
     i = 1
     while i < len(columns):
-        command += atype + columns[i]
+        command += " " + atype + " " + columns[i]
         if operators[i].startswith("~"):
             command += " NOT " + operators[i][1:] + " " + conditions[i]
         else:
