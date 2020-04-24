@@ -11,7 +11,7 @@ def upload_file(table, url, mysql):
 	
 	with requests.Session() as s:
 		download = s.get(url)
-		decoded_content = download.content.decode('utf-8')
+		decoded_content = download.content.decode('utf-8-sig')
 		cr = csv.reader(decoded_content.splitlines(), delimiter=',')
 		my_list = list(cr)
 		column_names = ','.join(my_list[0])
