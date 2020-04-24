@@ -19,13 +19,16 @@ def upload_file(table, url, mysql):
 			return 400, None, None, "Failed to download the file"
 		
 		# Create table 
-		status, message, data, error = create_table(table, column_names, "", mysql)
-		if (status == 401):
-			return 401, None, None, "Please connect to a database using the /connect endpoint."
+		if not table:
+			status, message, data, error = create_table(table, column_names, "", mysql)
+			if status == 401:
+				return 401, None, None, "Please connect to a database using the /connect endpoint."
 		
 		# Upload data
 		for row in my_list[1:]:
 			row_list = ','.join(row)
 			status, message, data, error = vanilla_post_tabledata(table, column_names, row_list, mysql)
+			if (status == 401):
+				return 401, None, None, "Please connect to a database using the /connect endpoint."
 	
 	return 200, "Table Created", None, None
