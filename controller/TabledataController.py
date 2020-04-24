@@ -99,10 +99,12 @@ def delete_tabledata(table, condition, mysql):
         raise PredictableInvalidArgumentException("1")
     elif len(tables) > 1:
         raise PredictableInvalidArgumentException("6")
+    
+    command = "DELETE FROM " + table +" "
+    command = command + "WHERE " + condition + ";"
+    
+    print(command)
 
-    command = "DELETE FROM `" + table +"` "
-    commnad = command + "WHERE `" + condition + "`;"
-   
     data, error = db_query(mysql, command)
     if error != None:
         status = 412

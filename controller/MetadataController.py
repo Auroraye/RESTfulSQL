@@ -151,7 +151,7 @@ def update_column(table, column, operation, value, mysql):
             try:
                 cur.execute(command)
             except Exception as e:
-                con.abort()
+                con.rollback()
                 cur.close()
                 raise e
         if "default" in by_col[col]:
@@ -166,7 +166,7 @@ def update_column(table, column, operation, value, mysql):
                 else:
                     val = "\"" + val + "\""
             except Exception as e:
-                con.abort()
+                con.rollback()
                 cur.close()
                 raise PredictableTypeNotMatchException(typ + "," + val)
             # ALTER City SET DEFAULT 'Sandnes';
@@ -174,7 +174,7 @@ def update_column(table, column, operation, value, mysql):
             try:
                 cur.execute(command)
             except Exception as e:
-                con.abort()
+                con.rollback()
                 cur.close()
                 raise e
     status = 200
