@@ -57,8 +57,12 @@ def update_column(table, column, operation, value, mysql):
     elif len(tables) > 1:
         raise PredictableInvalidArgumentException("2")
     # Then, check if the table is in the database.
-    con = mysql.connection
-    cur = con.cursor()
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
     command = "SELECT * FROM `" + table + "` LIMIT 1;"
     try:
         cur.execute(command)
@@ -209,8 +213,12 @@ def post_unique_key(table, key, name, mysql):
         else:
             tem.append(n)
 
-    con = mysql.connection
-    cur = con.cursor()
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
     con.autocommit = False
 
     i = 0
@@ -234,8 +242,12 @@ def post_unique_key(table, key, name, mysql):
 def get_unique_key(table, mysql):
     check_table_field(table)
 
-    con = mysql.connection
-    cur = con.cursor()
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
 
     # Check if the table is in the database
     command = "SELECT * FROM `" + table + "`;"
@@ -315,8 +327,12 @@ def delete_unique_key(table, name, mysql):
             raise PredictableUnknownKeyException(n)
 
     # Start to communicate with the database.
-    con = mysql.connection
-    cur = con.cursor()
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
     con.autocommit = False
 
     for n in names:
@@ -462,8 +478,12 @@ def delete_foreign_key(table, name, mysql):
 def get_foreign_key(table, mysql):
     check_table_field(table)
 
-    con = mysql.connection
-    cur = con.cursor()
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
 
     # Check if the table is in the database
     command = "SELECT * FROM `" + table + "`;"

@@ -114,48 +114,6 @@ def delete_tabledata(table, condition, mysql):
         return status, message, None, None
 
 
-def post_tabledata(table, column, value, mysql):
-    con, cur = None, None
-    try:
-        con = mysql.connection
-        cur = con.cursor()
-    except Exception as e:
-        return 401, None, None, e
-    con.close()
-    cur.close()
-
-    check_table_field(table)
-
-    columns = column.split(",")
-    values = extract_unique_key(value)
-
-    if len(columns) != len(values):
-        raise PredictableNumberOfParameterNotMatchException("column,value")
-
-    # Reformat the parameter for next process.
-    col_val = {}
-    i = 0
-    while i < len(columns):
-        col_val[columns[i]] = values[i]
-        i += 1
-    known = {}
-    unknown = {}
-
-    # Check if there are any unknown column.
-    t1, t2, data, t3 = get_metadata(table, mysql, os.getenv("MYSQL_DB"))
-    for col in columns:
-        if check_exist_from_json(col, data, "Field") is True:
-            known[col] = col_val[col]
-        else:
-            unknown[col] = col_val[col]
-
-    # con = mysql.connection
-    # cur = con.cursor()
-    # con.autocommit = False
-    # Check if this table has reference to other table.
-    t1, t2, data, t3 = get_foreign_key(table, mysql)
-
-
 def vanilla_post_tabledata(table, column, value, mysql):
     check_table_field(table)
     columns = column.split(",")
@@ -463,6 +421,15 @@ def insert_multiple_tables(table, column, value, mysql):
 
     if len(known) == 0:
         raise PredictableException("Please have at least one valid column to fill in the value.")
+
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
+    con.close()
+    cur.close()
 
     command_array = []
     if len(unknown) != 0:

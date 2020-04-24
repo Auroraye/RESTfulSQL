@@ -20,8 +20,12 @@ def post_group_by(table, function, rename, group, view, mysql):
         command += ", " + functions[i] + " AS " + renames[i]
         i += 1
     command += " FROM `" + table + "` GROUP BY `" + group + "`);"
-    con = mysql.connection
-    cur = con.cursor()
+    con, cur = None, None
+    try:
+        con = mysql.connection
+        cur = con.cursor()
+    except Exception as e:
+        return 401, None, None, e
     try:
         cur.execute(command)
         con.commit()
@@ -36,7 +40,6 @@ def post_group_by(table, function, rename, group, view, mysql):
         try:
             con.rollback()
             cur.close()
-            con.close()
             raise e
         except MySQLdb._exceptions.OperationalError:
             raise e
