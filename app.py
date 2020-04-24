@@ -344,8 +344,8 @@ class TabledataList(Resource):
     @api.expect(data_delete)
     def delete(self):
         table = request.json["name"]
-        condition = request.json["condition"]
-        status, message, data, error = delete_tabledata(table, condition, mysql)
+        conditions = request.json["condition"]
+        status, message, data, error = delete_tabledata(table, conditions, mysql)
         return organize_return(status, message, data, error)
 
 
