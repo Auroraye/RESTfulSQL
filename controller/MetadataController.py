@@ -190,7 +190,7 @@ def post_unique_key(table, key, name, mysql):
     if len(uniques) != len(names):
         raise PredictableNumberOfParameterNotMatchException("keys,key_names")
 
-    status, message, table_structure, error = get_metadata(table, mysql)
+    status, message, table_structure, error = get_metadata_(table, mysql)
 
     # Check the validation of each key.
     for k in uniques:
@@ -544,3 +544,26 @@ def get_foreign_key(table, mysql):
             raise e
     status = 200
     return status, None, data, None
+
+
+def get_metadata_(table_name, mysql):
+    resultlist = []
+    error = ""
+    result, error = db_query(
+        mysql, 'DESCRIBE `{}`;'.format(table_name))
+    if error is not None:
+        return 400, "Table does not exist in the database.", None, None
+    for item in result:
+        temp = {"Field": item[0],
+                "Type": item[1],
+                "Null": item[2],
+                "Key": item[3]
+                }
+        resultlist.append(temp)
+    message = "Success! Get all column info from."
+    data = resultlist
+    status = 200
+    if error is not None:
+        status = 400
+        message = "Failed. Error: " + error
+    return status, message, data, error
