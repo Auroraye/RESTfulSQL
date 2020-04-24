@@ -63,15 +63,6 @@ class Connect(Resource):
         flask_app.config["MYSQL_USER"] = request.json["username"]
         flask_app.config["MYSQL_PASSWORD"] = request.json["password"]
         flask_app.config["MYSQL_DB"] = request.json["database"]
-        text = ""
-        f = open(".env", "r")
-        for x in f:
-            if not x.startswith("MYSQL_DB"):
-                text += x + "\n"
-        f.close()
-        f = open(".env","w")
-        f.write(text)
-        f.write("MYSQL_DB = " + request.json["database"])
 
         result, error = db_query(mysql, "SHOW STATUS")
         if (error):
@@ -319,7 +310,7 @@ class TabledataList(Resource):
             table = request.json["name"]
             column = request.json["columns"]
             value = request.json["values"]
-            status, message, data, error = insert_multiple_tables(table, column, value, mysql)
+            status, message, data, error = insert_multiple_tables(table, column, value, mysql, flask_app.config["MYSQL_DB"] )
             if status == 401:
                 table_space.abort(status, error)
             return organize_return(status, message, data, error)
@@ -442,14 +433,13 @@ class Metadata(Resource):
     @api.doc(description="<b>Get the metadata.</b>"
                          "<br/> <br/> Explanation: <br/> Get the metadata of the database or metadata of certain table. "
                          "<br/> <br/> Assumption: <br/> The table exists in the database.")
-    @api.param("table_name",
-               description="Enter \'TABLE\' to get a list of tables in database; Enter \'VIEW\' to get a list of "
-                           "views in the database; Enter an existing table name to get columns\' information for that "
-                           "table.",
-               type="string")
+    # @api.param("table_name",
+    #            description="Enter \'TABLE\' to get a list of tables in database; Enter \'VIEW\' to get a list of "
+    #                        "views in the database; Enter an existing table name to get columns\' information for that "
+    #                        "table.",
+    #            type="string")
     @api.doc(responses={200: "OK", 400: "Table does not exist in the database", 401: "Unauthorized access"})
-    def get(self):
-        table_name = request.args["table_name"]
+    def get(self, table_name):
         status, message, data, error = get_metadata(table_name, mysql, flask_app.config["MYSQL_DB"])
         return return_response(status, message, data, error)
 

@@ -1,6 +1,6 @@
 import os
 
-from controller.MetadataController import get_metadata, check_exist_from_json
+from controller.MetadataController import get_metadata, check_exist_from_json, get_metadata_
 from controller.PredictableExeption import *
 from util.ExtractSpecialArray import check_table_field, extract_unique_key
 from util.LFUHelper import LFU_increment
@@ -25,7 +25,7 @@ def post_filter(table, column, operator, condition, atype, view, mysql):
     if atype not in ["AND", "OR", "XOR"]:
         raise PredictableInvalidArgumentException("9")
 
-    t1, t2, array, t3 = get_metadata(table, mysql)
+    t1, t2, array, t3 = get_metadata_(table, mysql)
     for c in columns:
         if not check_exist_from_json(c, array, "Field"):
             raise PredictableUnknownKeyException(c)

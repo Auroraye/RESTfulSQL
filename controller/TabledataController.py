@@ -1,6 +1,6 @@
 import os
 import json
-from controller.MetadataController import get_foreign_key, get_metadata
+from controller.MetadataController import get_foreign_key, get_metadata, get_metadata_
 from util.ExtractSpecialArray import check_table_field, extract_unique_key, check_exist_from_json
 from util.QueryHelper import db_query
 from controller.PredictableExeption import *
@@ -195,7 +195,7 @@ def insert_upper_table(table, unknown, known, mysql):
     # Organize all the columns in all the referenced table, and put them in to each table.
     all_columns = {}
     for t in referenced:
-        t1, t2, data, t3 = get_metadata(t, mysql)
+        t1, t2, data, t3 = get_metadata_(t, mysql)
         for r in data:
             col = r["Field"]
             if col not in referenced[t]["key"]:
@@ -267,13 +267,12 @@ def insert_upper_table(table, unknown, known, mysql):
     return new_unknown, array_command
 
 
-def insert_lower_table(table, unknown, known, mysql):
+def insert_lower_table(table, unknown, known, mysql, db):
     array_command = []
 
     # Get the list of tables that referencing to this table.
     table_list = []
-    print(os.getenv("MYSQL_DB"))
-    command = "SELECT FOR_NAME FROM information_schema.INNODB_SYS_FOREIGN WHERE REF_NAME LIKE \"" + os.getenv("MYSQL_DB")
+    command = "SELECT FOR_NAME FROM information_schema.INNODB_SYS_FOREIGN WHERE REF_NAME LIKE \"" + db
     command += "/" + table + "\";"
     print(command)
     cur = mysql.connection.cursor()
@@ -281,7 +280,7 @@ def insert_lower_table(table, unknown, known, mysql):
         cur.execute(command)
         result = cur.fetchall()
         for i in result:
-            table_list.append(i[0][len(os.getenv("MYSQL_DB")) + 1:])
+            table_list.append(i[0][len(db) + 1:])
         cur.close()
     except Exception as e:
         cur.close()
@@ -320,7 +319,7 @@ def insert_lower_table(table, unknown, known, mysql):
     # Organize all the columns in all the referenced table, and put them in to each table.
     all_columns = {}
     for t in referenced:
-        t1, t2, data, t3 = get_metadata(t, mysql)
+        t1, t2, data, t3 = get_metadata_(t, mysql)
         for r in data:
             col = r["Field"]
             if col not in referenced[t]["key"]:
@@ -402,7 +401,7 @@ def insert_into_table(command, cur):
         raise e
 
 
-def insert_multiple_tables(table, column, value, mysql):
+def insert_multiple_tables(table, column, value, mysql, db):
     check_table_field(table)
     columns = column.split(",")
     values = value.split(",")
@@ -410,7 +409,7 @@ def insert_multiple_tables(table, column, value, mysql):
     if len(columns) != len(values):
         raise PredictableNumberOfParameterNotMatchException("columns,values")
 
-    t1, t2, data, t4 = get_metadata(table, mysql)
+    t1, t2, data, t4 = get_metadata_(table, mysql)
     i = 0
     known = []
     unknown = []
@@ -451,7 +450,7 @@ def insert_multiple_tables(table, column, value, mysql):
     command_array.append(command)
 
     if len(unknown) != 0:
-        unknown, more_commad = insert_lower_table(table, unknown, known, mysql)
+        unknown, more_commad = insert_lower_table(table, unknown, known, mysql, db)
         command_array.extend(more_commad)
 
     if len(unknown) != 0:
