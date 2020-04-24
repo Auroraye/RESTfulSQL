@@ -14,6 +14,8 @@ def get_metadata(table_name, mysql, current_database=os.getenv("MYSQL_DB")):
         result, error = db_query(
             mysql, 'SHOW FULL TABLES IN {};'.format(current_database))
         for item in result:
+            if item[1] == "VIEW":
+                continue
             temp = {"Tables": item[0],
                     "Table_type": item[1]
                     }
